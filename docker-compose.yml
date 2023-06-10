@@ -5,3 +5,4 @@ services:
     build:
       dockerfile: .docker/Dockerfile
       context: ./
+    tty: true
