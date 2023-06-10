@@ -1,0 +1,11 @@
+{
+	"$schema": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/tsconfig.json",
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"emitDecoratorMetadata": false,
+		"experimentalDecorators": false
+	},
+	"include": ["src/**/*"]
+}
