@@ -1,0 +1,12 @@
+name: Question
+description: Ask a question about Sentry (developing or using it)
+labels: [question]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Question
+      description: Please state your question clearly
+      placeholder: I am having issues...
+    validations:
+      required: true

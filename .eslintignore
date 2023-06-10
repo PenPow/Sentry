@@ -1,0 +1,4 @@
+node_modules/
+./.eslintrc.cjs
+./tsup.config.tsup
+./commitlint.config.js

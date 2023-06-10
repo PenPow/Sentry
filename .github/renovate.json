@@ -1,0 +1,12 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"labels": ["dependencies"],
+	"osvVulnerabilityAlerts": true,
+	"schedule": ["every weekend"],
+	"github-actions": {
+		"enabled": false
+	},
+	"npm": {
+		"postUpdateOptions": ["pnpmDedupe"]
+	}
+}
