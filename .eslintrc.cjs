@@ -10,10 +10,14 @@ module.exports = {
 	plugins: ["deprecation"],
 	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'plugin:@sapphire/result/recommended', "plugin:node/recommended", 'plugin:import/recommended', 'plugin:import/typescript'],
 	settings: {
-		'import/resolver': {
-			typescript: true,
-			node: true
-		}
+		"import/parsers": {
+			"@typescript-eslint/parser": [".ts", ".tsx"]
+		  },
+		  "import/resolver": {
+			"typescript": {
+			  "alwaysTryTypes": true,
+			}
+		  }
 	},
 	ignorePatterns: ["node_modules", ".eslintrc.cjs", "commitlint.config.js", "tsup.config.ts", "dist"],
 	env: {
