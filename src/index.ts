@@ -8,7 +8,7 @@ import { getToken } from "./utilities/SecretsUtility.js";
 
 const client = new SapphireClient({
   intents: [GatewayIntentBits.Guilds],
-  disableMentionPrefix: true,
+  disableMentionPrefix: false,
   shards: "auto",
   logger: {
     level: LogLevel.Debug,
