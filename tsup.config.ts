@@ -12,7 +12,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   splitting: false,
-  clean: true,
+  clean: false,
   bundle: false,
   platform: 'node',
   shims: false,
