@@ -8,9 +8,9 @@
   "packageManager": "npm@9.7.1",
   "scripts": {
     "prepare": "husky install",
-    "build": "rimraf -g dist/**/* && tsup src/index.ts && tsup src/**/*",
+    "build": "tsup \"src/**/*\"",
     "start": "node --enable-source-maps ./",
-    "lint": "eslint src/**/*"
+    "lint": "eslint \"src/**/*\""
   },
   "keywords": [
     "discord",
@@ -71,7 +71,6 @@
     "husky": "^8.0.3",
     "prettier": "^2.8.8",
     "prisma": "^4.15.0",
-    "rimraf": "^5.0.1",
     "tsup": "^6.7.0",
     "typescript": "^5.1.3"
   }
