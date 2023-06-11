@@ -1,6 +1,10 @@
+import { ApplyOptions } from "@sapphire/decorators";
 import { AllFlowsPrecondition } from "@sapphire/framework";
 import { APIInteractionGuildMember, CommandInteraction, ContextMenuCommandInteraction, Guild, GuildMember, Message } from "discord.js";
 
+@ApplyOptions<AllFlowsPrecondition.Options>({
+  name: "ServerOwnerOnly",
+})
 export class ServerOwnerOnlyPrecondition extends AllFlowsPrecondition {
   public override messageRun(message: Message) {
     if (!message.inGuild() || !message.member)

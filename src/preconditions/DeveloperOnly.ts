@@ -1,6 +1,10 @@
+import { ApplyOptions } from "@sapphire/decorators";
 import { AllFlowsPrecondition } from "@sapphire/framework";
 import { CommandInteraction, ContextMenuCommandInteraction, Message, Snowflake } from "discord.js";
 
+@ApplyOptions<AllFlowsPrecondition.Options>({
+  name: "DeveloperOnly",
+})
 export class DeveloperOnlyPrecondition extends AllFlowsPrecondition {
   public override messageRun(message: Message) {
     return this.isDeveloper(message.author.id);
