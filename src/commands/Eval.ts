@@ -4,7 +4,7 @@ import { ModalBuilder, TextInputStyle, ActionRowBuilder, TextInputBuilder } from
 
 @ApplyOptions<Command.Options>({
   description: "Interactive debugger",
-  preconditions: [],
+  preconditions: ["DeveloperOnly"],
 })
 export class EvalCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
