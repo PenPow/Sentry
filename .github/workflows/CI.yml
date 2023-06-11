@@ -1,6 +1,19 @@
 name: Continuous Integration
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - .gitignore
+      - .github/**
+      - branding/*
+  pull_request:
+    branches:
+    - main
 
 jobs:
   Linting:
