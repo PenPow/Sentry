@@ -3,13 +3,8 @@ version = 1
 [merge]
 require_automerge_label = true
 blocking_labels = ['blocked']
-method = 'squash'
-
-[merge.message]
-title = 'pull_request_title'
-strip_html_comments = true
-include_coauthors = true
+do_not_merge = true
 
 [update]
-ignored_usernames = ["renovate[bot]"]
+ignored_usernames = ["renovate"]
 always = true
