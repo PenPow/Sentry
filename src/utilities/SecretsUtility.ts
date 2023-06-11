@@ -54,9 +54,3 @@ export class SecretsUtility extends Utility {
     return this.#secrets[key];
   }
 }
-
-declare module "@sapphire/plugin-utilities-store" {
-  export interface Utilities {
-    secrets: SecretsUtility;
-  }
-}
