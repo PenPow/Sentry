@@ -158,6 +158,7 @@ module.exports = {
 			}
 		],
 		'max-depth': 'off',
+		'max-len': ["error", { "code": 160 }],
 		'max-lines': 'off',
 		'max-nested-callbacks': 'off',
 		'max-params': 'off',
@@ -298,6 +299,7 @@ module.exports = {
 		'no-void': 'off',
 		'no-warning-comments': 'off',
 		'no-with': 'error',
+		'node/no-missing-import': 'off',
 		'object-shorthand': ['error', 'always'],
 		'one-var': ['error', 'never'],
 		'operator-assignment': ['error', 'always'],
