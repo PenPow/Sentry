@@ -7,6 +7,7 @@ always = true
 [merge]
 blocking_labels = ['blocked']
 method = 'squash'
+delete_branch_on_merge = true
 
 [merge.message]
 title = 'pull_request_title'
