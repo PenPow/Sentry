@@ -7,5 +7,25 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://postgres:postgres@localhost:5432/mydb?schema=public"
+}
+
+model Guild {
+  id String @id @unique
+  cases Moderation[]
+}
+
+enum PunishmentType {
+  Warn
+}
+
+model Moderation {
+  caseId String @id @unique
+  createdAt DateTime @default(now())
+  duration BigInt?
+  guildId String
+  guild Guild @relation(fields: [guildId], references: [id])
+  moderatorId String @default("934121887829737562") // sentry bot id
+  reason String /// @encrypted
+  type PunishmentType
 }

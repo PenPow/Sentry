@@ -15,14 +15,12 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
 COPY .env tsconfig.json tsup.config.ts  ./
+COPY prisma/ prisma/
 COPY src/ src/ 
 
+RUN npx prisma generate
+
 RUN npm run build
-
-# TODO: Enable prisma
-# ADD prisma/ ./
-
-# RUN npx prisma generate
 
 RUN chown sentry:sentry /usr/sentry
 USER sentry
