@@ -1,4 +1,4 @@
-All files in this directory are licensed separately
+# All files in this directory are licensed separately under
 
 # CC Attribution-NonCommercial 4.0 International
 
