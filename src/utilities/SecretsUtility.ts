@@ -28,6 +28,7 @@ export class SecretsUtility extends Utility {
     });
 
     this.initialised = false;
+    this.#secrets = {};
 
     void this.init();
   }
@@ -46,11 +47,7 @@ export class SecretsUtility extends Utility {
     this.initialised = true;
   }
 
-  public async get(key: string): Promise<string | undefined> {
-    if (!this.initialised) {
-      await this.init();
-    }
-
+  public get(key: string): string | undefined {
     return this.#secrets[key];
   }
 }
