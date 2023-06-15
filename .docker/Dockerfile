@@ -4,7 +4,6 @@ ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
 ARG ENVIRONMENT='PRODUCTION'
-ENV ENVIRONMENT=$ENVIRONMENT
 
 ENV NODE_OPTIONS="--enable-source-maps"
 ENV HUSKY=0
@@ -33,5 +32,5 @@ RUN npm run build
 RUN chown sentry:sentry /usr/sentry
 USER sentry
 
-ENV NODE_ENV=ENVIRONMENT
+ENV NODE_ENV=$ENVIRONMENT
 CMD [ "npm", "run", "start" ]
