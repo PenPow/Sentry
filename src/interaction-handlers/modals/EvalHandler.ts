@@ -4,7 +4,7 @@ import { Stopwatch } from "@sapphire/stopwatch";
 import { isNullish, isThenable } from "@sapphire/utilities";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalSubmitInteraction } from "discord.js";
 import { inspect } from "util";
-import { version } from "../../index.js";
+// import { version } from "../../index.js";
 
 @ApplyOptions<InteractionHandler.Options>({
   interactionHandlerType: InteractionHandlerTypes.ModalSubmit,
@@ -39,7 +39,7 @@ export class ModalHandler extends InteractionHandler {
       components,
       content: [
         `⏱️ **Execution Time:** \`${data.executionTime}\``,
-        `\nSentry was built at ${version}\n`,
+        // `\nSentry was built at ${version}\n`,
         result.isOk() ? "❓ Code excecuted successfully" : "❓ Code returned an error",
       ].join("\n"),
     });

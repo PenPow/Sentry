@@ -1,5 +1,5 @@
 node_modules/
 ./.eslintrc.cjs
 ./prettier.config.cjs
-./tsup.config.ts
 ./commitlint.config.cjs
+scripts/**/*
