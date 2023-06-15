@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+ARG GIT_COMMIT
+ENV GIT_COMMIT=$GIT_COMMIT
+
 ENV NODE_OPTIONS="--enable-source-maps"
 ENV HUSKY=0
 ENV CI=true

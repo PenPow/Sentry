@@ -25,5 +25,5 @@ ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior
 
 client.logger.info("Logged In");
 
-// /** Injected at build-time by esbuild */
-// export const version = "[VI]{{inject}}[/VI]";
+/** Injected at build-time by docker */
+export const version = process.env.GIT_COMMIT;
