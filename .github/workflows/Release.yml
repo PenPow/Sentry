@@ -1,0 +1,91 @@
+name: Release Management
+
+on:
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Sentry
+            dockerfile: "Bot.Dockerfile"
+            image: ghcr.io/penpow/sentry
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ matrix.image }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/${{ matrix.dockerfile }}
+          push: true
+          build-args: |
+            ENVIRONMENT=production
+            GIT_COMMIT=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+  sentry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+      
+      - name: Add problem matcher
+        run: echo "::add-matcher::.github/problemMatchers/tsc.json"
+
+      - name: Use Node.js v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Code
+        run: npx tsc
+
+      - name: Upload Sentry Release
+        run: |
+          chmod +x ./scripts/buildSentryRelease.sh
+          ./scripts/buildSentryRelease.sh
+        shell: bash
