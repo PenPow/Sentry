@@ -9,7 +9,7 @@ ENV NODE_OPTIONS="--enable-source-maps"
 ENV HUSKY=0
 ENV CI=true
 
-RUN apk add -q --no-cache libc6-compat openssl python3 g++ make jq curl
+RUN apk add -q --no-cache libc6-compat openssl python3 g++ make
 
 WORKDIR /usr/sentry
 
