@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   sentry:
-    image: "ghcr.io/penpow/sentry:latest"
+    image: "ghcr.io/penpow/sentry"
     labels:
       - com.centurylinklabs.watchtower.enable
     tty: true

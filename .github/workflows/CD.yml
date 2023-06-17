@@ -117,7 +117,7 @@ jobs:
         with:
           url: ${{ secrets.SENTRY_DEPLOYMENT_HTTP_URL }}
           method: 'GET'
-          customHeaders: '{"Authorization": "updatesentry"}'
+          customHeaders: '{"Authorization": "Bearer updatesentry"}'
 
       - name: Update Deployment Status
         if: success()
