@@ -19,6 +19,7 @@ enum CaseAction {
   Warn
   Timeout
   Kick
+  Softban
 }
 
 model Moderation {

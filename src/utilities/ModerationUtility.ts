@@ -4,6 +4,7 @@ import { Result } from "@sapphire/result";
 import { APIEmbed, ChannelType, Guild, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
 import { customAlphabet } from "nanoid/non-secure";
 import { captureException } from "@sentry/node";
+import { Time } from "@sapphire/time-utilities";
 
 export type Case = Omit<Moderation, "createdAt" | "caseId" | "modLogMessageId">;
 export type CaseWithReference = Omit<Moderation, "action"> & { action: CaseAction | "Punishment Expiry"; caseReference: Moderation | null };
@@ -31,6 +32,9 @@ export class ModerationUtility extends Utility {
         case "Kick":
           await user.kick(data.reason);
           break;
+        case "Softban":
+          await user.ban({ deleteMessageSeconds: (Time.Day * 7) / Time.Millisecond, reason: data.reason });
+          await guild.bans.remove(user, "Removing ban as part of softban");
       }
     } catch (error) {
       this.container.logger.error(error);
@@ -147,6 +151,7 @@ export class ModerationUtility extends Utility {
       case "Timeout":
         return 0xffca3a;
       case "Kick":
+      case "Softban":
         return 0xffa05e;
       case "Punishment Expiry":
         return 0x1e1e21;
