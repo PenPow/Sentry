@@ -11,21 +11,27 @@ datasource db {
 }
 
 model Guild {
-  id String @id @unique
+  id    String       @id @unique
   cases Moderation[]
 }
 
-enum PunishmentType {
+enum CaseAction {
   Warn
 }
 
 model Moderation {
-  caseId String @id @unique
-  createdAt DateTime @default(now())
-  duration BigInt?
-  guildId String
-  guild Guild @relation(fields: [guildId], references: [id])
-  moderatorId String @default("934121887829737562") // default = sentry bot id
-  reason String /// @encrypted
-  type PunishmentType
+  caseId          String       @id @unique
+  createdAt       DateTime     @default(now())
+  duration        Int?
+  guildId         String
+  guild           Guild        @relation(fields: [guildId], references: [id])
+  moderatorId     String       @default("934121887829737562") // default = sentry bot id
+  reason          String /// @encrypted
+  modLogMessageId String?
+  action          CaseAction
+  userId          String
+  caseReferenceId String?
+  caseReference   Moderation?  @relation("CaseReference", fields: [caseReferenceId], references: [caseId])
+  references      Moderation[] @relation("CaseReference")
+  userName        String /// Username at time of punishment
 }

@@ -1,5 +1,6 @@
 import { SecretsUtility } from "../utilities/SecretsUtility.ts";
 import { EmbedsUtility } from "../utilities/EmbedUtility.ts";
+import { ModerationUtility } from "../utilities/ModerationUtility.ts";
 import { PrismaClient } from "@prisma/client";
 
 declare module "@sapphire/framework" {
@@ -19,6 +20,7 @@ declare module "@sapphire/plugin-utilities-store" {
   export interface Utilities {
     secrets: SecretsUtility;
     embeds: EmbedsUtility;
+    moderation: ModerationUtility;
   }
 }
 
