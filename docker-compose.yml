@@ -6,3 +6,5 @@ services:
       dockerfile: docker/Dockerfile
       context: ./
     tty: true
+    env_file:
+      - .env

@@ -19,7 +19,7 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --ignore-scripts
 
-COPY .env tsconfig.json  ./
+COPY tsconfig.json  ./
 COPY src/ src/ 
 
 RUN npm run build
