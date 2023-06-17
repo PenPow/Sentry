@@ -23,7 +23,5 @@ try {
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
 
-client.logger.info("Logged In");
-
 /** Injected at build-time by docker */
 export const version = process.env.GIT_COMMIT;
