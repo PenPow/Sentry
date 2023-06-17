@@ -33,8 +33,8 @@ export class WarnCommand extends Command {
           option
             .setName("reference")
             .setDescription("Add a case to reference this punishment with")
-            .setMinLength(14)
-            .setMaxLength(14)
+            .setMinLength(6)
+            .setMaxLength(6)
             .setRequired(false)
             .setAutocomplete(true)
         )
