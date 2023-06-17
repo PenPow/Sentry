@@ -59,8 +59,5 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build Prisma
-        run: npx prisma generate
-
       - name: Build Code
         run: npm run build

@@ -17,6 +17,7 @@ model Guild {
 
 enum CaseAction {
   Warn
+  Timeout
 }
 
 model Moderation {
