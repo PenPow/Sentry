@@ -21,7 +21,7 @@ export class ModerationTask extends ScheduledTask {
 
     const guild = await this.container.client.guilds.fetch(modCase.guildId);
 
-    await this.container.utilities.moderation.sendModLogMessage(guild, this.container.client.user!, {
+    const msg = await this.container.utilities.moderation.sendModLogMessage(guild, this.container.client.user!, {
       caseId: this.container.utilities.moderation.generateCaseId(),
       createdAt: modCase.createdAt,
       duration: null,
@@ -35,5 +35,7 @@ export class ModerationTask extends ScheduledTask {
       caseReference: modCase,
       caseReferenceId: modCase.caseId,
     });
+
+    msg.expect("Expected message to be sent");
   }
 }
