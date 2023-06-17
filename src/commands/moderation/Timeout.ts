@@ -21,7 +21,10 @@ export class TimeoutCommand extends Command {
           option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
         )
         .addStringOption((option) =>
-          option.setName("expiration").setDescription("How long should the  (pass in a duration string)").setRequired(true)
+          option
+            .setName("expiration")
+            .setDescription("How long should the timeout be for - up to a maximum of 28d (pass in a duration string)")
+            .setRequired(true)
         )
         .addStringOption((option) =>
           option
