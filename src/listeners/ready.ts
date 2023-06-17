@@ -1,14 +1,17 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Listener } from "@sapphire/framework";
 import { RewriteFrames } from "@sentry/integrations";
+import { PrismaClient } from "@prisma/client";
+import { version } from "../index.js";
 
 import * as Sentry from "@sentry/node";
-import { version } from "../index.js";
+import { fieldEncryptionMiddleware } from "prisma-field-encryption";
 
 @ApplyOptions<Listener.Options>({ once: true })
 export class ReadyEvent extends Listener {
   public async run() {
     await this.container.utilities.secrets.init();
+
     Sentry.init({
       dsn: this.container.utilities.secrets.get("SENTRY_DSN")!,
       release: version,
@@ -24,6 +27,16 @@ export class ReadyEvent extends Listener {
         new RewriteFrames({ root: "/usr/sentry/dist", prefix: "src/" }),
       ],
     });
+
+    this.container.prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: "postgresql://postgres:postgres@db:5432/sentry?schema=public",
+        },
+      },
+    });
+
+    this.container.prisma.$use(fieldEncryptionMiddleware({ encryptionKey: this.container.utilities.secrets.get("DB_ENCRYPTION_KEY")! }));
 
     this.container.logger.info("Ready!");
   }

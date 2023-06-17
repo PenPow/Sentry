@@ -23,17 +23,16 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
 COPY tsconfig.json  ./
+
+COPY prisma/ prisma/
+RUN npx prisma generate
+
 COPY src/ src/ 
 
 RUN npm run build
-
-# TODO: Enable prisma
-# ADD prisma/ ./
-
-# RUN npx prisma generate
 
 RUN chown sentry:sentry /usr/sentry
 USER sentry
 
 ENV NODE_ENV=$ENVIRONMENT
-CMD [ "npm", "run", "start" ]
+CMD [ "npm", "run", "start:migrate" ]
