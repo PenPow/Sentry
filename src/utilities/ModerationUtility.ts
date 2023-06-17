@@ -18,7 +18,7 @@ export class ModerationUtility extends Utility {
     });
   }
 
-  public async createCase(_guild: Guild, data: Case): Promise<Result<CaseWithReference, Error>> {
+  public async createCase(guild: Guild, data: Case): Promise<Result<CaseWithReference, Error>> {
     try {
       switch (data.action) {
         case "Warn":
@@ -31,6 +31,8 @@ export class ModerationUtility extends Utility {
 
       return Result.err(error as Error);
     }
+
+    await this.container.prisma.guild.upsert({ create: { id: guild.id }, update: {}, where: { id: guild.id } });
 
     const modCase = await this.container.prisma.moderation.create({
       data: {
@@ -45,12 +47,11 @@ export class ModerationUtility extends Utility {
     return Result.ok(modCase);
   }
 
-  public async sendModLogMessage(guild: Guild, moderator: User, data: CaseWithReference): Promise<Result<unknown, Error>> {
+  public async sendModLogMessage(guild: Guild, moderator: User, data: CaseWithReference): Promise<Result<APIEmbed, Error>> {
     const channel = await this.getLogChannelForGuild(guild);
-
-    if (!channel) return Result.ok();
-
     const embed = await this.createCaseEmbed(guild, moderator, data);
+
+    if (!channel) return Result.ok(embed);
 
     if (data.modLogMessageId) {
       const message = await channel.messages.fetch(data.modLogMessageId);
@@ -58,7 +59,7 @@ export class ModerationUtility extends Utility {
       if (message) {
         await message.edit({ embeds: [embed] });
 
-        return Result.ok();
+        return Result.ok(embed);
       }
     }
 
@@ -67,7 +68,7 @@ export class ModerationUtility extends Utility {
 
       await this.container.prisma.moderation.update({ where: { caseId: data.caseId }, data: { modLogMessageId: message.id } });
 
-      return Result.ok();
+      return Result.ok(embed);
     } catch (error) {
       this.container.logger.error(error);
 
