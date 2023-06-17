@@ -86,6 +86,9 @@ jobs:
       - name: Build Code
         run: npx tsc
 
+      - name: Authenticate Sentry
+        run: ./node_modules/.bin/sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
+
       - name: Upload Sentry Release
         run: |
           chmod +x ./scripts/buildSentryRelease.sh
