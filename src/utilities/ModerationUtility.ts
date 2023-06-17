@@ -2,7 +2,7 @@ import { Moderation, CaseAction } from "@prisma/client";
 import { Utility } from "@sapphire/plugin-utilities-store";
 import { Result } from "@sapphire/result";
 import { APIEmbed, ChannelType, Guild, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
-import { nanoid } from "nanoid/non-secure";
+import { customAlphabet } from "nanoid/non-secure";
 import { captureException } from "@sentry/node";
 
 export type Case = Omit<Moderation, "createdAt" | "caseId" | "modLogMessageId">;
@@ -27,6 +27,9 @@ export class ModerationUtility extends Utility {
           break;
         case "Timeout":
           await user.timeout(data.duration, data.reason);
+          break;
+        case "Kick":
+          await user.kick(data.reason);
           break;
       }
     } catch (error) {
@@ -94,7 +97,7 @@ export class ModerationUtility extends Utility {
   }
 
   public generateCaseId(): string {
-    return nanoid(6);
+    return customAlphabet("1234567890", 9)();
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {
@@ -141,11 +144,14 @@ export class ModerationUtility extends Utility {
   private getEmbedColour(type: CaseAction | "Punishment Expiry"): number {
     switch (type) {
       case "Warn":
-        return 0xebd070;
+      case "Timeout":
+        return 0xffca3a;
+      case "Kick":
+        return 0xffa05e;
       case "Punishment Expiry":
         return 0x1e1e21;
-      case "Timeout":
       default:
+        this.container.logger.fatal(`Punishment type ${type} has no configured colour`);
         return 0x000000;
     }
   }
