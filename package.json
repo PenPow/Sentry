@@ -10,7 +10,8 @@
     "prepare": "husky install",
     "build": "tsc",
     "start": "node --enable-source-maps ./",
-    "start:migrate": "DATABASE_URL=\"postgresql://postgres:postgres@db:5432/sentry?schema=public\" prisma migrate deploy && npm run start",
+    "start:migrate": "cross-env DATABASE_URL=\"postgresql://postgres:postgres@db:5432/sentry?schema=public\" prisma migrate deploy && npm run start",
+    "migrate": "cross-env DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/sentry?schema=public\" prisma migrate dev",
     "lint": "eslint \"src/**/*\""
   },
   "keywords": [
@@ -68,6 +69,7 @@
     "@types/node": "18.x",
     "@typescript-eslint/eslint-plugin": "^5.59.9",
     "@typescript-eslint/parser": "^5.59.9",
+    "cross-env": "^7.0.3",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-import-resolver-typescript": "^3.5.5",
