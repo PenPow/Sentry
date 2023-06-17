@@ -39,7 +39,7 @@ module.exports = {
 			}
 		],
 		'@typescript-eslint/class-literal-property-style': 'error',
-		'@typescript-eslint/consistent-type-definitions': 'error',
+		'@typescript-eslint/consistent-type-definitions': ['error', 'type'],
 		'@typescript-eslint/default-param-last': 'error',
 		'@typescript-eslint/dot-notation': [
 			'error',

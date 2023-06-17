@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 declare namespace NodeJS {
   export interface ProcessEnv {
     DOPPLER_SECRETS_KEY: string;

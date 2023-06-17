@@ -10,8 +10,11 @@ services:
       - .env
     links:
       - db
+      - redis
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   db:
@@ -31,7 +34,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: redis:alpine
+    restart: always
+    expose:
+      - 6379
+    volumes: 
+      - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     
 volumes:
   db:
+    driver: local
+  redis:
     driver: local
