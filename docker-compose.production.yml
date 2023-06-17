@@ -1,11 +1,8 @@
 version: "3.8"
 
-# TODO: Replace with built image
 services:
   sentry:
-    build:
-      dockerfile: .docker/Dockerfile
-      context: ./
+    image: ghcr.io/PenPow/Sentry:latest
     labels:
       - com.centurylinklabs.watchtower.enable
     tty: true
