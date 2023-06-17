@@ -19,9 +19,14 @@ export class ModerationUtility extends Utility {
   }
 
   public async createCase(guild: Guild, data: Case): Promise<Result<CaseWithReference, Error>> {
+    const user = await guild.members.fetch(data.userId);
+
     try {
       switch (data.action) {
         case "Warn":
+          break;
+        case "Timeout":
+          await user.timeout(data.duration, data.reason);
           break;
       }
     } catch (error) {
@@ -139,6 +144,7 @@ export class ModerationUtility extends Utility {
         return 0xebd070;
       case "Punishment Expiry":
         return 0x1e1e21;
+      case "Timeout":
       default:
         return 0x000000;
     }

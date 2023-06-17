@@ -17,6 +17,8 @@ export class ModerationTask extends ScheduledTask {
       case "Warn":
         await this.container.prisma.moderation.delete({ where: { caseId: payload.id } });
         break;
+      case "Timeout":
+        break;
     }
 
     const guild = await this.container.client.guilds.fetch(modCase.guildId);
