@@ -1,4 +1,4 @@
-name: Release Management
+name: Continuous Delivery
 
 on:
   release:
@@ -59,10 +59,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Image digest
+        if: ${{ !failure() }}
         run: echo ${{ steps.docker_build.outputs.digest }}
 
   sentry:
     runs-on: ubuntu-latest
+    needs: [docker]
 
     steps:
       - name: Checkout Project
@@ -89,3 +91,44 @@ jobs:
           chmod +x ./scripts/buildSentryRelease.sh
           ./scripts/buildSentryRelease.sh
         shell: bash
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: [docker, sentry]
+    permissions:
+      deployments: write
+
+    steps:
+      - uses: chrnorm/deployment-action@v2
+        name: Create Deployment
+        id: deployment
+        with:
+          token: '${{ github.token }}'
+          initial-status: 'in_progress'
+          ref: ${{ github.ref }}
+          auto-inactive: false
+          environment: production
+
+      - name: Deploy Stage
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ secrets.SENTRY_DEPLOYMENT_HTTP_URL }}
+          method: 'GET'
+          customHeaders: '{"Authorization": "updatesentry"}'
+
+      - name: Update Deployment Status
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          auto-inactive: true
+          state: 'success'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          state: 'failure'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}

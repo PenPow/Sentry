@@ -1,0 +1,20 @@
+version: "3.8"
+
+# TODO: Replace with built image
+services:
+  sentry:
+    build:
+      dockerfile: .docker/Dockerfile
+      context: ./
+    labels:
+      - com.centurylinklabs.watchtower.enable
+    tty: true
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --http-api-update --http-api-token updatesentry
