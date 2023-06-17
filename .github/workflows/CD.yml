@@ -110,7 +110,7 @@ jobs:
           initial-status: 'in_progress'
           ref: ${{ github.ref }}
           auto-inactive: false
-          environment: production
+          environment: Sentry Bot
 
       - name: Deploy Stage
         uses: fjogeleit/http-request-action@v1

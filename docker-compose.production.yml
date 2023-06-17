@@ -2,9 +2,9 @@ version: "3.8"
 
 services:
   sentry:
-    image: "ghcr.io/penpow/sentry"
+    image: ghcr.io/penpow/sentry
     labels:
-      - com.centurylinklabs.watchtower.enable
+      - com.centurylinklabs.watchtower.enable=true
     tty: true
     env_file:
       - .env
@@ -16,4 +16,6 @@ services:
       - 8909:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     command: --label-enable --http-api-update --http-api-token updatesentry
