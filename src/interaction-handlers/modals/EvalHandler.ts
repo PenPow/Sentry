@@ -39,7 +39,7 @@ export class ModalHandler extends InteractionHandler {
       components,
       content: [
         `⏱️ **Execution Time:** \`${data.executionTime}\``,
-        `\nSentry was built at ${version}\n`,
+        `\nSentry Commit \`${version.slice(0, 7)}\`\n`,
         result.isOk() ? "❓ Code excecuted successfully" : "❓ Code returned an error",
       ].join("\n"),
     });
