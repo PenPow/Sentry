@@ -3,6 +3,6 @@ version: "3.8"
 services:
   sentry:
     build:
-      dockerfile: .docker/Dockerfile
+      dockerfile: docker/Dockerfile
       context: ./
     tty: true

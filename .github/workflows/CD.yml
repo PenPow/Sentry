@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - name: Sentry
-            dockerfile: .docker/Dockerfile
+            dockerfile: Dockerfile
             image: ghcr.io/penpow/sentry
 
     permissions:
