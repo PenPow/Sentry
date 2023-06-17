@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { SecretsUtility } from "../utilities/SecretsUtility.ts";
 import { EmbedsUtility } from "../utilities/EmbedUtility.ts";
 import { ModerationUtility } from "../utilities/ModerationUtility.ts";
@@ -21,6 +22,12 @@ declare module "@sapphire/plugin-utilities-store" {
     secrets: SecretsUtility;
     embeds: EmbedsUtility;
     moderation: ModerationUtility;
+  }
+}
+
+declare module "@sapphire/plugin-scheduled-tasks" {
+  interface ScheduledTasks {
+    expiringCase: never;
   }
 }
 
