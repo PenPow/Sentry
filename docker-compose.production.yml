@@ -13,7 +13,7 @@ services:
     image: containrrr/watchtower
     restart: always
     ports:
-      - 8080:8080
+      - 8909:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --label-enable --http-api-update --http-api-token updatesentry
