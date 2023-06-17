@@ -3,6 +3,7 @@ import { Utility } from "@sapphire/plugin-utilities-store";
 import { Result } from "@sapphire/result";
 import { APIEmbed, ChannelType, Guild, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
 import { nanoid } from "nanoid/non-secure";
+import { captureException } from "@sentry/node";
 
 export type Case = Omit<Moderation, "createdAt" | "caseId" | "modLogMessageId">;
 export type CaseWithReference = Moderation & { caseReference: Moderation | null };
@@ -25,6 +26,8 @@ export class ModerationUtility extends Utility {
       }
     } catch (error) {
       this.container.logger.error(error);
+
+      captureException(error);
 
       return Result.err(error as Error);
     }
@@ -67,6 +70,8 @@ export class ModerationUtility extends Utility {
       return Result.ok();
     } catch (error) {
       this.container.logger.error(error);
+
+      captureException(error);
 
       return Result.err(error as Error);
     }
