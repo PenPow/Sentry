@@ -29,12 +29,11 @@ export class WarnCommand extends Command {
         .addStringOption((option) =>
           option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
         )
-        .addStringOption((option) =>
+        .addIntegerOption((option) =>
           option
             .setName("reference")
             .setDescription("Add a case to reference this punishment with")
-            .setMinLength(6)
-            .setMaxLength(6)
+            .setMinValue(1)
             .setRequired(false)
             .setAutocomplete(true)
         )
@@ -57,7 +56,7 @@ export class WarnCommand extends Command {
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", true);
-    let reference = interaction.options.getString("reference", false);
+    let reference = interaction.options.getInteger("reference", false);
 
     const expirationOption = interaction.options.getString("expiration", false);
     const expiration = expirationOption ? new Duration(expirationOption) : null;
@@ -123,7 +122,9 @@ export class WarnCommand extends Command {
       return interaction.editReply({ content: "Modal timed out" });
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
+    await response.deferReply();
+
+    const modCase = await this.container.utilities.moderation.createCase(response.guild, {
       reason: response.fields.getTextInputValue("reason"),
       guildId: interaction.guildId,
       duration: null,
@@ -137,10 +138,10 @@ export class WarnCommand extends Command {
     const caseData = modCase.expect("Expected case data");
 
     const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(interaction.guild, moderator, caseData);
+    const logMessage = await this.container.utilities.moderation.sendModLogMessage(response.guild, moderator, caseData);
 
     const embed = logMessage.unwrap();
 
-    return interaction.editReply({ embeds: [embed] });
+    return response.editReply({ embeds: [embed] });
   }
 }

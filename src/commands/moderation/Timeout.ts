@@ -26,12 +26,11 @@ export class TimeoutCommand extends Command {
             .setDescription("How long should the timeout be for - up to a maximum of 28d (pass in a duration string)")
             .setRequired(true)
         )
-        .addStringOption((option) =>
+        .addIntegerOption((option) =>
           option
             .setName("reference")
             .setDescription("Add a case to reference this punishment with")
-            .setMinLength(6)
-            .setMaxLength(6)
+            .setMinValue(1)
             .setRequired(false)
             .setAutocomplete(true)
         )
@@ -41,7 +40,7 @@ export class TimeoutCommand extends Command {
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", true);
-    let reference = interaction.options.getString("reference", false);
+    let reference = interaction.options.getInteger("reference", false);
 
     const expiration = new Duration(interaction.options.getString("expiration", true));
     if (Number.isNaN(expiration.offset) || expiration.offset / Time.Day > 28) {

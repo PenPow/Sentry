@@ -2,7 +2,7 @@ import { ApplyOptions } from "@sapphire/decorators";
 import { ScheduledTask } from "@sapphire/plugin-scheduled-tasks";
 
 export type CaseScheduledTaskPayload = {
-  id: string;
+  id: number;
 };
 
 @ApplyOptions<ScheduledTask.Options>({
@@ -25,7 +25,7 @@ export class ModerationTask extends ScheduledTask {
     const guild = await this.container.client.guilds.fetch(modCase.guildId);
 
     const msg = await this.container.utilities.moderation.sendModLogMessage(guild, this.container.client.user!, {
-      caseId: this.container.utilities.moderation.generateCaseId(),
+      caseId: await this.container.utilities.moderation.generateCaseId(guild.id),
       createdAt: modCase.createdAt,
       duration: null,
       guildId: guild.id,

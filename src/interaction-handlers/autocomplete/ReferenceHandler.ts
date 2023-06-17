@@ -25,7 +25,9 @@ export class AutocompleteHandler extends InteractionHandler {
       cases.length === 0
         ? [{ name: "No Cases Found", value: "null" }]
         : clamp(
-            cases.filter((modCase) => modCase.caseId.startsWith(query)).map((modCase) => ({ name: `${modCase.caseId}`, value: modCase.caseId })),
+            cases
+              .filter((modCase) => modCase.caseId.toString().startsWith(query))
+              .map((modCase) => ({ name: `#${modCase.caseId}`, value: modCase.caseId })),
             25
           )
     );

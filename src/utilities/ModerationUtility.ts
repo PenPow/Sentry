@@ -1,8 +1,7 @@
 import { Moderation, CaseAction } from "@prisma/client";
 import { Utility } from "@sapphire/plugin-utilities-store";
 import { Result } from "@sapphire/result";
-import { APIEmbed, ChannelType, Guild, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
-import { customAlphabet } from "nanoid/non-secure";
+import { APIEmbed, ChannelType, Guild, Snowflake, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
 import { captureException } from "@sentry/node";
 import { Time } from "@sapphire/time-utilities";
 
@@ -49,7 +48,7 @@ export class ModerationUtility extends Utility {
     const modCase = await this.container.prisma.moderation.create({
       data: {
         ...data,
-        caseId: this.generateCaseId(),
+        caseId: await this.generateCaseId(guild.id),
       },
       include: {
         caseReference: true,
@@ -100,8 +99,8 @@ export class ModerationUtility extends Utility {
     return channel;
   }
 
-  public generateCaseId(): string {
-    return customAlphabet("1234567890", 9)();
+  public generateCaseId(guildId: Snowflake): Promise<number> {
+    return this.container.redis.incr(`p-id-${guildId}`);
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {

@@ -6,10 +6,14 @@ import { version } from "../index.js";
 
 import * as Sentry from "@sentry/node";
 import { fieldEncryptionMiddleware } from "prisma-field-encryption";
+import { Redis } from "ioredis";
+import { setTimeout } from "timers/promises";
 
 @ApplyOptions<Listener.Options>({ once: true })
 export class ReadyEvent extends Listener {
   public async run() {
+    await setTimeout(1000); // Resolves weird issue where secrets havent been initialised yet
+
     await this.container.utilities.secrets.init();
 
     Sentry.init({
@@ -35,6 +39,8 @@ export class ReadyEvent extends Listener {
         },
       },
     });
+
+    this.container.redis = new Redis(6379, "redis");
 
     this.container.prisma.$use(fieldEncryptionMiddleware({ encryptionKey: this.container.utilities.secrets.get("DB_ENCRYPTION_KEY")! }));
 

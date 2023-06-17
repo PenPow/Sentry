@@ -29,8 +29,6 @@ export class SecretsUtility extends Utility {
 
     this.initialised = false;
     this.#secrets = {};
-
-    void this.init();
   }
 
   public async init() {
