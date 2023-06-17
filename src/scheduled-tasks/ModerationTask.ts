@@ -18,6 +18,7 @@ export class ModerationTask extends ScheduledTask {
         await this.container.prisma.moderation.delete({ where: { caseId: payload.id } });
         break;
       case "Timeout":
+      default:
         break;
     }
 
