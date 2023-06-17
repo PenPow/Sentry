@@ -3,6 +3,10 @@
 	<p>
 		<a href="https://sentry.penpow.dev"><img src="https://cdn.penpow.dev/u/SentryTransparent.png" width="1638" alt="Sentry"/></a>
 	</p>
+	<img alt="CI Status" src="https://github.com/PenPow/Sentry/actions/workflows/CI.yml/badge.svg?branch=main&event=push" />
+	<img alt="CD Status" src="https://github.com/PenPow/Sentry/actions/workflows/CD.yml/badge.svg" />
+	<img alt="Latest Release" src="https://ghcr-badge.egpl.dev/penpow/sentry/latest_tag?color=limegreen"/>
+	<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/PenPow/Sentry?color=32CD32&label=Last%20Commit">
 </div>
 
 ## About
