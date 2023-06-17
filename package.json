@@ -10,7 +10,7 @@
     "prepare": "husky install",
     "build": "tsc",
     "start": "node --enable-source-maps ./",
-    "start:migrate": "prisma migrate deploy && npm run start",
+    "start:migrate": "DATABASE_URL=\"postgresql://postgres:postgres@db:5432/sentry?schema=public\" prisma migrate deploy && npm run start",
     "lint": "eslint \"src/**/*\""
   },
   "keywords": [
