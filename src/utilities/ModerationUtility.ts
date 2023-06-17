@@ -6,7 +6,7 @@ import { nanoid } from "nanoid/non-secure";
 import { captureException } from "@sentry/node";
 
 export type Case = Omit<Moderation, "createdAt" | "caseId" | "modLogMessageId">;
-export type CaseWithReference = Moderation & { caseReference: Moderation | null };
+export type CaseWithReference = Omit<Moderation, "action"> & { action: CaseAction | "Punishment Expiry"; caseReference: Moderation | null };
 
 export const LogChannelNames = ["modlogs", "modlog", "mod-log", "mod-logs", "logs", "sentry-logs", "sentry-log"];
 
@@ -66,7 +66,8 @@ export class ModerationUtility extends Utility {
     try {
       const message = await channel.send({ embeds: [embed] });
 
-      await this.container.prisma.moderation.update({ where: { caseId: data.caseId }, data: { modLogMessageId: message.id } });
+      if (data.action !== "Punishment Expiry")
+        await this.container.prisma.moderation.update({ where: { caseId: data.caseId }, data: { modLogMessageId: message.id } });
 
       return Result.ok(embed);
     } catch (error) {
@@ -78,13 +79,17 @@ export class ModerationUtility extends Utility {
     }
   }
 
-  private async getLogChannelForGuild(guild: Guild) {
+  public async getLogChannelForGuild(guild: Guild) {
     const channels = await guild.channels.fetch();
     const channel = channels.filter((channel) => channel?.type === ChannelType.GuildText).find((channel) => LogChannelNames.includes(channel!.name));
 
     if (!channel || !channel.isTextBased()) return null;
 
     return channel;
+  }
+
+  public generateCaseId(): string {
+    return nanoid(6);
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {
@@ -128,14 +133,14 @@ export class ModerationUtility extends Utility {
     };
   }
 
-  private getEmbedColour(type: CaseAction): number {
+  private getEmbedColour(type: CaseAction | "Punishment Expiry"): number {
     switch (type) {
       case "Warn":
         return 0xebd070;
+      case "Punishment Expiry":
+        return 0x1e1e21;
+      default:
+        return 0x000000;
     }
-  }
-
-  private generateCaseId(): string {
-    return nanoid(14);
   }
 }
