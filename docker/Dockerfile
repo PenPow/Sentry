@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+LABEL org.opencontainers.image.source="https://github.com/PenPow/Sentry"
+LABEL org.opencontainers.image.description="Sentry's docker image"
+
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
