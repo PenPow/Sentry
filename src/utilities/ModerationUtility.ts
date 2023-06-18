@@ -41,7 +41,7 @@ export class ModerationUtility extends Utility {
       },
     });
 
-    if (data.duration) {
+    if (data.duration && data.action !== "Timeout") {
       await this.container.tasks.create("expiringCase", { id: modCase.id }, data.duration);
     }
 
