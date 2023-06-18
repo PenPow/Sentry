@@ -37,6 +37,7 @@ export class ModerationUtility extends Utility {
     const modCase = await this.container.prisma.moderation.create({
       data: {
         ...data,
+        duration: data.duration ? data.duration / Time.Second : null,
         caseId: await this.generateCaseId(guild.id),
       },
       include: {
@@ -162,7 +163,7 @@ export class ModerationUtility extends Utility {
     let description = `**Member**: \`${data.userName}\` (${data.userId})\n**Action**: ${data.action}`;
 
     if (data.duration) {
-      description += `\n**Expiration**: ${time(new Date(Date.now() + data.duration), TimestampStyles.RelativeTime)}`;
+      description += `\n**Expiration**: ${time(new Date(Date.now() + data.duration * Time.Second), TimestampStyles.RelativeTime)}`;
     }
 
     description += `\n**Reason**: ${data.reason}`;
