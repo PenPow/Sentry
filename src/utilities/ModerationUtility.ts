@@ -32,8 +32,8 @@ export class ModerationUtility extends Utility {
           await user.kick(data.reason);
           break;
         case "Softban":
-          await user.ban({ deleteMessageSeconds: (Time.Day * 7) / Time.Millisecond, reason: data.reason });
-          await guild.bans.remove(user, "Removing ban as part of softban");
+          await guild.members.ban(data.userId, { deleteMessageSeconds: (Time.Day * 7) / Time.Second, reason: data.reason });
+          await guild.bans.remove(data.userId, "Removing ban as part of softban");
       }
     } catch (error) {
       this.container.logger.error(error);
