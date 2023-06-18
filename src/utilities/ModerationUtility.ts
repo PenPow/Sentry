@@ -17,20 +17,17 @@ import {
 } from "discord.js";
 import { captureException } from "@sentry/node";
 import { Time } from "@sapphire/time-utilities";
+import { ApplyOptions } from "@sapphire/decorators";
 
 export type Case = Omit<Moderation, "id" | "createdAt" | "caseId" | "modLogMessageId">;
 export type CaseWithReference = Omit<Moderation, "action"> & { action: CaseAction | "Punishment Expiry"; caseReference: Moderation | null };
 
 export const LogChannelNames = ["modlogs", "modlog", "mod-log", "mod-logs", "logs", "sentry-logs", "sentry-log"];
 
+@ApplyOptions<Utility.Options>({
+  name: "moderation",
+})
 export class ModerationUtility extends Utility {
-  public constructor(context: Utility.Context, options: Utility.Options) {
-    super(context, {
-      ...options,
-      name: "moderation",
-    });
-  }
-
   public async createCase(guild: Guild, data: Case, dm = true): Promise<Result<[CaseWithReference, APIEmbed], Error>> {
     await this.container.prisma.guild.upsert({ create: { id: guild.id }, update: {}, where: { id: guild.id } });
 

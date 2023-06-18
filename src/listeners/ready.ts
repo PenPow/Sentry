@@ -12,7 +12,7 @@ import { setTimeout } from "timers/promises";
 @ApplyOptions<Listener.Options>({ once: true })
 export class ReadyEvent extends Listener {
   public async run() {
-    await setTimeout(1000); // Resolves weird issue where secrets havent been initialised yet
+    await setTimeout(200); // Resolves weird issue where secrets havent been initialised yet
 
     await this.container.utilities.secrets.init();
 
