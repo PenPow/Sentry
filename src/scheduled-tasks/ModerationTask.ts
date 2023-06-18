@@ -32,35 +32,10 @@ export class ModerationTask extends ScheduledTask {
         });
 
         caseResult.expect("case to not be err");
-
-        const msg = await this.container.utilities.moderation.sendModLogMessage(
-          guild,
-          this.container.client.user!,
-          caseResult.expect("case to not be err")
-        );
-
-        msg.expect("Expected message to be sent");
-        return;
+        break;
       }
       default:
         break;
     }
-
-    const msg = await this.container.utilities.moderation.sendModLogMessage(guild, this.container.client.user!, {
-      caseId: await this.container.utilities.moderation.generateCaseId(guild.id),
-      createdAt: modCase.createdAt,
-      duration: null,
-      guildId: guild.id,
-      moderatorId: this.container.client.user!.id,
-      reason: "Punishment Duration Elapsed",
-      modLogMessageId: null,
-      action: "Punishment Expiry",
-      userId: modCase.userId,
-      userName: modCase.userName,
-      caseReference: modCase,
-      caseReferenceId: modCase.caseId,
-    });
-
-    msg.expect("Expected message to be sent");
   }
 }

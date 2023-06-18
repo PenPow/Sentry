@@ -18,7 +18,38 @@ export class ModerationUtility extends Utility {
     });
   }
 
-  public async createCase(guild: Guild, data: Case): Promise<Result<CaseWithReference, Error>> {
+  public async createCase(guild: Guild, data: Case, dm = true): Promise<Result<[CaseWithReference, APIEmbed], Error>> {
+    await this.container.prisma.guild.upsert({ create: { id: guild.id }, update: {}, where: { id: guild.id } });
+
+    const modCase = await this.container.prisma.moderation.create({
+      data: {
+        ...data,
+        caseId: await this.generateCaseId(guild.id),
+      },
+      include: {
+        caseReference: true,
+      },
+    });
+
+    if (data.duration) {
+      await this.container.tasks.create("expiringCase", { id: modCase.caseId }, data.duration);
+    }
+
+    const moderator = await this.container.client.users.fetch(data.moderatorId);
+    const embedResult = await this.sendModLogMessage(guild, moderator, modCase);
+
+    const embed = embedResult.isOk() ? embedResult.unwrap() : embedResult.unwrapErr()[1];
+
+    if (dm && data.action !== "Unban") {
+      try {
+        const user = await this.container.client.users.fetch(data.userId);
+
+        const userEmbed = { ...embed, description: `You have recieved a punishment in \`${guild.name}\`\n\n${embed.description}` };
+
+        await user.send({ embeds: [userEmbed] });
+      } catch (_err) {}
+    }
+
     try {
       switch (data.action) {
         case "Warn":
@@ -48,22 +79,10 @@ export class ModerationUtility extends Utility {
       return Result.err(error as Error);
     }
 
-    await this.container.prisma.guild.upsert({ create: { id: guild.id }, update: {}, where: { id: guild.id } });
-
-    const modCase = await this.container.prisma.moderation.create({
-      data: {
-        ...data,
-        caseId: await this.generateCaseId(guild.id),
-      },
-      include: {
-        caseReference: true,
-      },
-    });
-
-    return Result.ok(modCase);
+    return Result.ok([modCase, embed]);
   }
 
-  public async sendModLogMessage(guild: Guild, moderator: User, data: CaseWithReference): Promise<Result<APIEmbed, Error>> {
+  public async sendModLogMessage(guild: Guild, moderator: User, data: CaseWithReference): Promise<Result<APIEmbed, [Error, APIEmbed]>> {
     const channel = await this.getLogChannelForGuild(guild);
     const embed = await this.createCaseEmbed(guild, moderator, data);
 
@@ -91,7 +110,7 @@ export class ModerationUtility extends Utility {
 
       captureException(error);
 
-      return Result.err(error as Error);
+      return Result.err([error as Error, embed]);
     }
   }
 
@@ -109,7 +128,7 @@ export class ModerationUtility extends Utility {
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {
-    let description = `**Member**: \`${data.userName}\` ({${data.userId})\n**Action**: ${data.action}`;
+    let description = `**Member**: \`${data.userName}\` (${data.userId})\n**Action**: ${data.action}`;
 
     if (data.duration) {
       description += `\n**Expiration**: ${time(new Date(Date.now() + data.duration), TimestampStyles.RelativeTime)}`;

@@ -28,6 +28,9 @@ export class SoftbanCommand extends Command {
         .addStringOption((option) =>
           option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
         )
+        .addBooleanOption((option) =>
+          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
+        )
         .addIntegerOption((option) =>
           option
             .setName("reference")
@@ -49,6 +52,7 @@ export class SoftbanCommand extends Command {
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", true);
+    const dm = interaction.options.getBoolean("dm", false) ?? false;
     let reference = interaction.options.getInteger("reference", false);
 
     if (reference) {
@@ -57,23 +61,22 @@ export class SoftbanCommand extends Command {
       if (!referencedCase) reference = null;
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
-      reason,
-      guildId: interaction.guildId,
-      duration: null,
-      moderatorId: interaction.user.id,
-      action: "Softban",
-      userId: user.id,
-      userName: user.username,
-      caseReferenceId: reference,
-    });
+    const modCase = await this.container.utilities.moderation.createCase(
+      interaction.guild,
+      {
+        reason,
+        guildId: interaction.guildId,
+        duration: null,
+        moderatorId: interaction.user.id,
+        action: "Softban",
+        userId: user.id,
+        userName: user.username,
+        caseReferenceId: reference,
+      },
+      dm
+    );
 
-    const caseData = modCase.expect("Expected case data");
-
-    const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(interaction.guild, moderator, caseData);
-
-    const embed = logMessage.unwrap();
+    const [_caseData, embed] = modCase.expect("Expected case data");
 
     return interaction.reply({ embeds: [embed] });
   }

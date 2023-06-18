@@ -26,6 +26,9 @@ export class TimeoutCommand extends Command {
             .setDescription("How long should the timeout be for - up to a maximum of 28d (pass in a duration string)")
             .setRequired(true)
         )
+        .addBooleanOption((option) =>
+          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
+        )
         .addIntegerOption((option) =>
           option
             .setName("reference")
@@ -40,6 +43,7 @@ export class TimeoutCommand extends Command {
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", true);
+    const dm = interaction.options.getBoolean("dm", false) ?? false;
     let reference = interaction.options.getInteger("reference", false);
 
     const expiration = new Duration(interaction.options.getString("expiration", true));
@@ -53,25 +57,24 @@ export class TimeoutCommand extends Command {
       if (!referencedCase) reference = null;
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
-      reason,
-      guildId: interaction.guildId,
-      duration: expiration.offset,
-      moderatorId: interaction.user.id,
-      action: "Timeout",
-      userId: user.id,
-      userName: user.username,
-      caseReferenceId: reference,
-    });
+    const modCase = await this.container.utilities.moderation.createCase(
+      interaction.guild,
+      {
+        reason,
+        guildId: interaction.guildId,
+        duration: expiration.offset,
+        moderatorId: interaction.user.id,
+        action: "Timeout",
+        userId: user.id,
+        userName: user.username,
+        caseReferenceId: reference,
+      },
+      dm
+    );
 
-    const caseData = modCase.expect("Expected case data");
+    const [caseData, embed] = modCase.expect("Expected case data");
 
     await this.container.tasks.create("expiringCase", { id: caseData.caseId }, expiration.offset);
-
-    const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(interaction.guild, moderator, caseData);
-
-    const embed = logMessage.unwrap();
 
     return interaction.reply({ embeds: [embed] });
   }

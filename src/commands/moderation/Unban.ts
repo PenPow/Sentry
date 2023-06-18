@@ -18,7 +18,7 @@ import { CaseAction } from "@prisma/client";
   requiredUserPermissions: [PermissionFlagsBits.BanMembers],
   runIn: [CommandOptionsRunTypeEnum.GuildText],
 })
-export class SoftbanCommand extends Command {
+export class Unban extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
     registry.registerChatInputCommand((builder) =>
       builder
@@ -45,6 +45,33 @@ export class SoftbanCommand extends Command {
         .setType(ApplicationCommandType.Message)
         .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
     );
+  }
+
+  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
+    const user = interaction.options.getUser("user", true);
+    const reason = interaction.options.getString("reason", true);
+    let reference = interaction.options.getInteger("reference", false);
+
+    if (reference) {
+      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference } });
+
+      if (!referencedCase) reference = null;
+    }
+
+    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
+      reason,
+      guildId: interaction.guildId,
+      duration: null,
+      moderatorId: interaction.user.id,
+      action: "Unban",
+      userId: user.id,
+      userName: user.username,
+      caseReferenceId: reference,
+    });
+
+    const [_caseData, embed] = modCase.expect("Expected case data");
+
+    return interaction.reply({ embeds: [embed] });
   }
 
   public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {

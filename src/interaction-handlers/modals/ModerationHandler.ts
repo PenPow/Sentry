@@ -30,12 +30,7 @@ export class ModalHandler extends InteractionHandler {
       caseReferenceId: reference,
     });
 
-    const caseData = modCase.expect("Expected case data");
-
-    const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(interaction.guild, moderator, caseData);
-
-    const embed = logMessage.unwrap();
+    const [_caseData, embed] = modCase.expect("Expected case data");
 
     return interaction.reply({ embeds: [embed] });
   }

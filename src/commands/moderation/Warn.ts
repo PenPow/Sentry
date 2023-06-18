@@ -29,6 +29,9 @@ export class WarnCommand extends Command {
         .addStringOption((option) =>
           option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
         )
+        .addBooleanOption((option) =>
+          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
+        )
         .addIntegerOption((option) =>
           option
             .setName("reference")
@@ -56,6 +59,7 @@ export class WarnCommand extends Command {
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", true);
+    const dm = interaction.options.getBoolean("dm", false) ?? false;
     let reference = interaction.options.getInteger("reference", false);
 
     const expirationOption = interaction.options.getString("expiration", false);
@@ -67,27 +71,26 @@ export class WarnCommand extends Command {
       if (!referencedCase) reference = null;
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
-      reason,
-      guildId: interaction.guildId,
-      duration: Number.isNaN(expiration?.offset) ? null : expiration ? expiration.offset : null,
-      moderatorId: interaction.user.id,
-      action: "Warn",
-      userId: user.id,
-      userName: user.username,
-      caseReferenceId: reference,
-    });
+    const modCase = await this.container.utilities.moderation.createCase(
+      interaction.guild,
+      {
+        reason,
+        guildId: interaction.guildId,
+        duration: Number.isNaN(expiration?.offset) ? null : expiration ? expiration.offset : null,
+        moderatorId: interaction.user.id,
+        action: "Warn",
+        userId: user.id,
+        userName: user.username,
+        caseReferenceId: reference,
+      },
+      dm
+    );
 
-    const caseData = modCase.expect("Expected case data");
+    const [caseData, embed] = modCase.expect("Expected case data");
 
     if (expiration instanceof Duration && !Number.isNaN(expiration.offset)) {
       await this.container.tasks.create("expiringCase", { id: caseData.caseId }, expiration.offset);
     }
-
-    const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(interaction.guild, moderator, caseData);
-
-    const embed = logMessage.unwrap();
 
     return interaction.reply({ embeds: [embed] });
   }
