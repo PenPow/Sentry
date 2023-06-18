@@ -18,7 +18,7 @@ import { CaseAction } from "@prisma/client";
   requiredUserPermissions: [PermissionFlagsBits.BanMembers],
   runIn: [CommandOptionsRunTypeEnum.GuildText],
 })
-export class SoftbanCommand extends Command {
+export class BanCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
     registry.registerChatInputCommand((builder) =>
       builder

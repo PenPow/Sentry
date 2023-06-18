@@ -18,7 +18,7 @@ import { CaseAction } from "@prisma/client";
   requiredUserPermissions: [PermissionFlagsBits.BanMembers],
   runIn: [CommandOptionsRunTypeEnum.GuildText],
 })
-export class Unban extends Command {
+export class UnbanCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
     registry.registerChatInputCommand((builder) =>
       builder
