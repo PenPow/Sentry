@@ -7,6 +7,8 @@ import { clamp } from "../../functions/Clamp.js";
   interactionHandlerType: InteractionHandlerTypes.Autocomplete,
 })
 export class AutocompleteHandler extends InteractionHandler {
+  private readonly DEFAULT_REASONS = ["TOS Violation(s)", "NSFW", "Scam/Spam Account", "Harassment"];
+
   public override parse(interaction: AutocompleteInteraction) {
     if (!["warn", "timeout", "kick", "softban", "ban", "unban", "untimeout", "case"].includes(interaction.commandName)) return this.none();
 
@@ -17,9 +19,23 @@ export class AutocompleteHandler extends InteractionHandler {
     return this.some({ query: option.value });
   }
 
-  // TODO: Implement default reasons
-  // Stub function to just return the user's input
   public override run(interaction: AutocompleteInteraction, { query }: InteractionHandler.ParseResult<this>) {
-    return interaction.respond(query === "" ? [] : clamp([{ name: query, value: query }], 25));
+    return interaction.respond(
+      query === ""
+        ? this.DEFAULT_REASONS.map((reason) => ({
+            name: reason,
+            value: reason,
+          }))
+        : clamp(
+            [
+              { name: query, value: query },
+              ...this.DEFAULT_REASONS.filter((reason) => reason.toLowerCase().startsWith(query.toLowerCase())).map((reason) => ({
+                name: reason,
+                value: reason,
+              })),
+            ],
+            25
+          )
+    );
   }
 }
