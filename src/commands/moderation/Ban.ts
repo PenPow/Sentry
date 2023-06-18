@@ -1,7 +1,16 @@
 import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
-import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import {
+  ActionRowBuilder,
+  ApplicationCommandType,
+  ModalBuilder,
+  PermissionFlagsBits,
+  PermissionsBitField,
+  TextInputBuilder,
+  TextInputStyle,
+} from "discord.js";
 import { Duration } from "@sapphire/time-utilities";
+import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Ban a user from your server",
@@ -34,6 +43,13 @@ export class SoftbanCommand extends Command {
             .setDescription("Unban the user automatically after this amount of time (pass in a duration string)")
             .setRequired(false)
         )
+    );
+
+    registry.registerContextMenuCommand((builder) =>
+      builder
+        .setName("Ban User")
+        .setType(ApplicationCommandType.User)
+        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
     );
   }
 
@@ -74,5 +90,28 @@ export class SoftbanCommand extends Command {
     const embed = logMessage.unwrap();
 
     return interaction.reply({ embeds: [embed] });
+  }
+
+  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
+    if (!interaction.isUserContextMenuCommand()) return;
+
+    const user = interaction.targetUser;
+
+    const modal = new ModalBuilder()
+      .setCustomId(`mod-${CaseAction.Ban}.${user.id}-${user.username}`)
+      .setTitle("Create New Ban")
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId("reason")
+            .setLabel("Reason")
+            .setMaxLength(500)
+            .setPlaceholder("They ...")
+            .setRequired(true)
+            .setStyle(TextInputStyle.Short)
+        )
+      );
+
+    await interaction.showModal(modal);
   }
 }

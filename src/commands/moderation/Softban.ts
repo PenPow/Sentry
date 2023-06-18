@@ -1,6 +1,15 @@
 import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
-import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import {
+  ActionRowBuilder,
+  ApplicationCommandType,
+  ModalBuilder,
+  PermissionFlagsBits,
+  PermissionsBitField,
+  TextInputBuilder,
+  TextInputStyle,
+} from "discord.js";
+import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Softban a user from your server",
@@ -27,6 +36,13 @@ export class SoftbanCommand extends Command {
             .setRequired(false)
             .setAutocomplete(true)
         )
+    );
+
+    registry.registerContextMenuCommand((builder) =>
+      builder
+        .setName("Softban User")
+        .setType(ApplicationCommandType.User)
+        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
     );
   }
 
@@ -60,5 +76,28 @@ export class SoftbanCommand extends Command {
     const embed = logMessage.unwrap();
 
     return interaction.reply({ embeds: [embed] });
+  }
+
+  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
+    if (!interaction.isUserContextMenuCommand()) return;
+
+    const user = interaction.targetUser;
+
+    const modal = new ModalBuilder()
+      .setCustomId(`mod-${CaseAction.Softban}.${user.id}-${user.username}`)
+      .setTitle("Create New Softban")
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId("reason")
+            .setLabel("Reason")
+            .setMaxLength(500)
+            .setPlaceholder("They ...")
+            .setRequired(true)
+            .setStyle(TextInputStyle.Short)
+        )
+      );
+
+    await interaction.showModal(modal);
   }
 }

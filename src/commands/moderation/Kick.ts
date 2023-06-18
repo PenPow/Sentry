@@ -1,6 +1,15 @@
 import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
-import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import {
+  ActionRowBuilder,
+  ApplicationCommandType,
+  ModalBuilder,
+  PermissionFlagsBits,
+  PermissionsBitField,
+  TextInputBuilder,
+  TextInputStyle,
+} from "discord.js";
+import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Kick a user from your server",
@@ -27,6 +36,13 @@ export class KickCommand extends Command {
             .setRequired(false)
             .setAutocomplete(true)
         )
+    );
+
+    registry.registerContextMenuCommand((builder) =>
+      builder
+        .setName("Kick User")
+        .setType(ApplicationCommandType.User)
+        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.KickMembers]).valueOf())
     );
   }
 
@@ -60,5 +76,28 @@ export class KickCommand extends Command {
     const embed = logMessage.unwrap();
 
     return interaction.reply({ embeds: [embed] });
+  }
+
+  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
+    if (!interaction.isUserContextMenuCommand()) return;
+
+    const user = interaction.targetUser;
+
+    const modal = new ModalBuilder()
+      .setCustomId(`mod-${CaseAction.Kick}.${user.id}-${user.username}`)
+      .setTitle("Create New Kick")
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId("reason")
+            .setLabel("Reason")
+            .setMaxLength(500)
+            .setPlaceholder("They ...")
+            .setRequired(true)
+            .setStyle(TextInputStyle.Short)
+        )
+      );
+
+    await interaction.showModal(modal);
   }
 }

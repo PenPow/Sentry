@@ -1,6 +1,16 @@
 import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
-import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import {
+  APIEmbed,
+  ActionRowBuilder,
+  ApplicationCommandType,
+  ModalBuilder,
+  PermissionFlagsBits,
+  PermissionsBitField,
+  TextInputBuilder,
+  TextInputStyle,
+} from "discord.js";
+import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Unban a user",
@@ -28,37 +38,48 @@ export class SoftbanCommand extends Command {
             .setAutocomplete(true)
         )
     );
+
+    registry.registerContextMenuCommand((builder) =>
+      builder
+        .setName("Unban User")
+        .setType(ApplicationCommandType.Message)
+        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
+    );
   }
 
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    let reference = interaction.options.getInteger("reference", false);
+  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
+    if (!interaction.isMessageContextMenuCommand()) return;
 
-    if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference } });
+    const message = interaction.targetMessage;
 
-      if (!referencedCase) reference = null;
+    const caseNo = message.embeds[0]?.footer?.text.split("#")[1] ?? "-1";
+    const modCase = await this.container.prisma.moderation.findUnique({ where: { caseId: parseInt(caseNo, 10) ?? -1 } });
+
+    if (!modCase || modCase.action !== "Ban") {
+      const embed: APIEmbed = {
+        title: "No Case Log Found",
+        description: `This command needs to be ran on a case log message produced by Sentry, referring to a ban`,
+        color: 0xff595e,
+      };
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
-      reason,
-      guildId: interaction.guildId,
-      duration: null,
-      moderatorId: interaction.user.id,
-      action: "Unban",
-      userId: user.id,
-      userName: user.username,
-      caseReferenceId: reference,
-    });
+    const modal = new ModalBuilder()
+      .setCustomId(`mod-${CaseAction.Unban}.${modCase.userId}-${modCase.userName}-${modCase.caseId}`)
+      .setTitle("Create New Unban")
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId("reason")
+            .setLabel("Reason")
+            .setMaxLength(500)
+            .setPlaceholder("They ...")
+            .setRequired(true)
+            .setStyle(TextInputStyle.Short)
+        )
+      );
 
-    const caseData = modCase.expect("Expected case data");
-
-    const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(interaction.guild, moderator, caseData);
-
-    const embed = logMessage.unwrap();
-
-    return interaction.reply({ embeds: [embed] });
+    return interaction.showModal(modal);
   }
 }

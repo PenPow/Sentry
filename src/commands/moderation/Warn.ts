@@ -9,8 +9,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { Duration, Time } from "@sapphire/time-utilities";
-import { nanoid } from "nanoid/non-secure";
+import { Duration } from "@sapphire/time-utilities";
+import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Warn a user",
@@ -93,12 +93,12 @@ export class WarnCommand extends Command {
   }
 
   public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
+    if (!interaction.isUserContextMenuCommand()) return;
 
-    const modalId = nanoid();
+    const user = interaction.targetUser;
 
     const modal = new ModalBuilder()
-      .setCustomId(`warn-${modalId}`)
+      .setCustomId(`mod-${CaseAction.Warn}.${user.id}-${user.username}`)
       .setTitle("Create New Warning")
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -113,35 +113,5 @@ export class WarnCommand extends Command {
       );
 
     await interaction.showModal(modal);
-
-    const response = await interaction.awaitModalSubmit({ filter: (i) => i.customId === `warn-${modalId}`, time: Time.Minute * 5 }).catch(() => {
-      return null;
-    });
-
-    if (!response) {
-      return interaction.editReply({ content: "Modal timed out" });
-    }
-
-    await response.deferReply();
-
-    const modCase = await this.container.utilities.moderation.createCase(response.guild, {
-      reason: response.fields.getTextInputValue("reason"),
-      guildId: interaction.guildId,
-      duration: null,
-      moderatorId: interaction.user.id,
-      action: "Warn",
-      userId: user.id,
-      userName: user.username,
-      caseReferenceId: null,
-    });
-
-    const caseData = modCase.expect("Expected case data");
-
-    const moderator = await interaction.client.users.fetch(interaction.user.id);
-    const logMessage = await this.container.utilities.moderation.sendModLogMessage(response.guild, moderator, caseData);
-
-    const embed = logMessage.unwrap();
-
-    return response.editReply({ embeds: [embed] });
   }
 }
