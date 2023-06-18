@@ -18,21 +18,23 @@ WORKDIR /usr/sentry
 
 RUN addgroup --system --gid 1001 sentry && adduser --system --uid 1001 sentry
 
-COPY package.json package-lock.json ./
+COPY .yarn/releases/* .yarn/releases/
+COPY .yarn/plugins/ .yarn/plugins/
+COPY package.json yarn.lock .yarnrc.yml ./
 
-RUN npm ci --ignore-scripts
+RUN yarn --immutable --check-cache
 
 COPY tsconfig.json  ./
 
 COPY prisma/ prisma/
-RUN npx prisma generate
+RUN yarn prisma generate
 
 COPY src/ src/ 
 
-RUN npm run build
+RUN yarn run build
 
 RUN chown sentry:sentry /usr/sentry
 USER sentry
 
 ENV NODE_ENV=$ENVIRONMENT
-CMD [ "npm", "run", "start:migrate" ]
+CMD [ "yarn", "run", "start:migrate" ]

@@ -7,6 +7,6 @@
 		"enabled": false
 	},
 	"npm": {
-		"postUpdateOptions": ["npmDedupe"]
+		"postUpdateOptions": ["yarnDedupeHighest"]
 	}
 }
