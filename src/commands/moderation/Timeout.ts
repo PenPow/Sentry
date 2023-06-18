@@ -1,13 +1,11 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum, UserError } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command, UserError } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { Duration, Time } from "@sapphire/time-utilities";
 
 @ApplyOptions<Command.Options>({
   description: "Timeout a user",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.ModerateMembers],
-  requiredUserPermissions: [PermissionFlagsBits.ModerateMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class TimeoutCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {

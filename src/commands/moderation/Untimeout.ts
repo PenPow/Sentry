@@ -1,13 +1,11 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import { APIEmbed, ActionRowBuilder, ModalBuilder, PermissionFlagsBits, PermissionsBitField, TextInputBuilder, TextInputStyle } from "discord.js";
 import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Untimeout a user",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.ModerateMembers],
-  requiredUserPermissions: [PermissionFlagsBits.ModerateMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class UntimeoutCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {

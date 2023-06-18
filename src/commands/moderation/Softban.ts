@@ -1,4 +1,4 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import {
   ActionRowBuilder,
@@ -13,9 +13,7 @@ import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Softban a user from your server",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.BanMembers],
-  requiredUserPermissions: [PermissionFlagsBits.BanMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class SoftbanCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {

@@ -15,7 +15,6 @@ import {
   messageLink,
   time,
 } from "discord.js";
-import { captureException } from "@sentry/node";
 import { Time } from "@sapphire/time-utilities";
 import { ApplyOptions } from "@sapphire/decorators";
 
@@ -88,10 +87,6 @@ export class ModerationUtility extends Utility {
           break;
       }
     } catch (error) {
-      this.container.logger.error(error);
-
-      captureException(error);
-
       return Result.err(error as Error);
     }
 
@@ -123,10 +118,6 @@ export class ModerationUtility extends Utility {
 
       return Result.ok(embed);
     } catch (error) {
-      this.container.logger.error(error);
-
-      captureException(error);
-
       return Result.err([error as Error, embed]);
     }
   }

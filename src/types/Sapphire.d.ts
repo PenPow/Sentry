@@ -9,6 +9,7 @@ declare module "@sapphire/framework" {
   export interface Preconditions {
     DeveloperOnly: never;
     ServerOwnerOnly: never;
+    ClientNeedsModerationPrivileges: never;
   }
 }
 

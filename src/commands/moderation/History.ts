@@ -1,4 +1,4 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import {
   APIEmbed,
@@ -14,9 +14,7 @@ import { clamp } from "../../functions/Clamp.js";
 
 @ApplyOptions<Command.Options>({
   description: "Fetch a user's moderation history",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks],
-  requiredUserPermissions: [PermissionFlagsBits.ModerateMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class HistoryCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {

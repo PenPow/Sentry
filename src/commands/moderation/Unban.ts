@@ -1,4 +1,4 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import {
   APIEmbed,
@@ -14,9 +14,7 @@ import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Unban a user",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.BanMembers],
-  requiredUserPermissions: [PermissionFlagsBits.BanMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class UnbanCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {

@@ -1,4 +1,4 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import {
   ActionRowBuilder,
@@ -13,9 +13,7 @@ import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Kick a user from your server",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.KickMembers],
-  requiredUserPermissions: [PermissionFlagsBits.KickMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class KickCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {

@@ -1,4 +1,4 @@
-import { ApplicationCommandRegistry, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
 import { ApplyOptions } from "@sapphire/decorators";
 import {
   ActionRowBuilder,
@@ -14,9 +14,7 @@ import { CaseAction } from "@prisma/client";
 
 @ApplyOptions<Command.Options>({
   description: "Warn a user",
-  requiredClientPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks],
-  requiredUserPermissions: [PermissionFlagsBits.ModerateMembers],
-  runIn: [CommandOptionsRunTypeEnum.GuildText],
+  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
 })
 export class WarnCommand extends Command {
   public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
