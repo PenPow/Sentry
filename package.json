@@ -9,8 +9,8 @@
     "prepare": "husky install",
     "lint": "npm run lint --workspaces",
     "build": "npm run build --workspaces",
-    "prisma:generate": "npm run prisma:generate --workspace=sentry",
-    "prisma:migrate": "npm run prisma:migrate --workspace=sentry"
+    "prisma:generate": "cross-env DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/sentry?schema=public\" prisma generate",
+    "prisma:migrate": "cross-env DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/sentry?schema=public\" prisma migrate dev"
   },
   "keywords": [
     "discord",
@@ -38,6 +38,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.5",
     "@commitlint/config-conventional": "^17.6.5",
+    "cross-env": "^7.0.3",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-import-resolver-typescript": "^3.5.5",

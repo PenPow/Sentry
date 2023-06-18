@@ -24,7 +24,7 @@ RUN npm ci --ignore-scripts
 
 COPY tsconfig.json  ./
 
-COPY apps/sentry/prisma/ prisma/
+COPY prisma/ prisma/
 RUN npx prisma generate
 
 COPY apps/sentry/src/ src/ 
