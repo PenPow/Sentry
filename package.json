@@ -21,7 +21,7 @@
     "discord-moderation"
   ],
   "author": "Joshua Clements <josh@penpow.dev> (https://www.penpow.dev)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "homepage": "https://github.com/PenPow/Sentry",
   "repository": {
     "type": "git",
