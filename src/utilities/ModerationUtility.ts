@@ -138,6 +138,22 @@ export class ModerationUtility extends Utility {
     return channel;
   }
 
+  public async createCaseEmbed(guild: Guild, moderator: User, data: CaseWithReference): Promise<APIEmbed> {
+    return {
+      color: this.getEmbedColour(data.action),
+      author: {
+        // FIXME: Will be replaced by the new discord global name system once released, furthermore need to look into how it works for bots
+        name: `${moderator.tag} (${moderator.id})`,
+        icon_url: moderator.displayAvatarURL(),
+      },
+      timestamp: new Date(data.createdAt).toISOString(),
+      description: await this.createCaseDescription(guild, data),
+      footer: {
+        text: `Case #${data.caseId}`,
+      },
+    };
+  }
+
   public generateCaseId(guildId: Snowflake): Promise<number> {
     return this.container.redis.incr(`p-id-${guildId}`);
   }
@@ -165,22 +181,6 @@ export class ModerationUtility extends Utility {
     }
 
     return description;
-  }
-
-  private async createCaseEmbed(guild: Guild, moderator: User, data: CaseWithReference): Promise<APIEmbed> {
-    return {
-      color: this.getEmbedColour(data.action),
-      author: {
-        // FIXME: Will be replaced by the new discord global name system once released, furthermore need to look into how it works for bots
-        name: `${moderator.tag} (${moderator.id})`,
-        icon_url: moderator.displayAvatarURL(),
-      },
-      timestamp: new Date(data.createdAt).toISOString(),
-      description: await this.createCaseDescription(guild, data),
-      footer: {
-        text: `Case #${data.caseId}`,
-      },
-    };
   }
 
   private getEmbedColour(type: CaseAction | "Punishment Expiry"): number {
