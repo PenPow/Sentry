@@ -41,4 +41,6 @@ model Moderation {
   caseReference   Moderation?  @relation("CaseReference", fields: [referenceId], references: [id])
   references      Moderation[] @relation("CaseReference")
   userName        String /// Username at time of punishment
+
+  @@unique([guildId, caseId])
 }
