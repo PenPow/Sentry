@@ -158,8 +158,10 @@ export class ModerationUtility extends Utility {
     };
   }
 
-  public generateCaseId(guildId: Snowflake): Promise<number> {
-    return this.container.redis.incr(`p-id-${guildId}`);
+  public generateCaseId(_guildId: Snowflake): Promise<number> {
+    // TODO: Move to guild based buckets, currently blocked due to the fact that I am stupid and made the caseId the primary key
+    // I need to somehow move the caseId to be a non unique key, and then update all the code to still make it searchable
+    return this.container.redis.incr(`p-id`);
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {
