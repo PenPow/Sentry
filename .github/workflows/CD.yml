@@ -77,14 +77,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: yarn
+          cache: npm
           registry-url: https://registry.npmjs.org/
 
       - name: Install Dependencies
-        run: yarn install --immutable --check-cache
+        run: npm ci
 
       - name: Build Code
-        run: yarn run build
+        run: npx tsc
 
       - name: Authenticate Sentry
         run: ./node_modules/.bin/sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
