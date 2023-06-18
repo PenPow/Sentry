@@ -8,7 +8,7 @@ import { clamp } from "../../functions/Clamp.js";
 })
 export class AutocompleteHandler extends InteractionHandler {
   public override parse(interaction: AutocompleteInteraction) {
-    if (!["warn", "timeout", "kick", "softban", "ban", "unban", "untimeout"].includes(interaction.commandName)) return this.none();
+    if (!["warn", "timeout", "kick", "softban", "ban", "unban", "untimeout", "case"].includes(interaction.commandName)) return this.none();
 
     const option = interaction.options.getFocused(true);
 
