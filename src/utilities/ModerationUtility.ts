@@ -19,21 +19,20 @@ export class ModerationUtility extends Utility {
   }
 
   public async createCase(guild: Guild, data: Case): Promise<Result<CaseWithReference, Error>> {
-    const user = await guild.members.fetch(data.userId);
-
     try {
       switch (data.action) {
         case "Warn":
           break;
         case "Timeout":
-          await user.timeout(data.duration, data.reason);
+          await guild.members.edit(data.userId, { communicationDisabledUntil: new Date(Date.now() + data.duration!), reason: data.reason });
           break;
         case "Kick":
-          await user.kick(data.reason);
+          await guild.members.kick(data.userId, data.reason);
           break;
         case "Softban":
           await guild.members.ban(data.userId, { deleteMessageSeconds: (Time.Day * 7) / Time.Second, reason: data.reason });
           await guild.bans.remove(data.userId, "Removing ban as part of softban");
+          break;
       }
     } catch (error) {
       this.container.logger.error(error);
@@ -139,7 +138,7 @@ export class ModerationUtility extends Utility {
       timestamp: new Date(data.createdAt).toISOString(),
       description: await this.createCaseDescription(guild, data),
       footer: {
-        text: `Case Reference #${data.caseId}`,
+        text: `Case #${data.caseId}`,
       },
     };
   }
