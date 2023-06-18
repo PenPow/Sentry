@@ -1,7 +1,20 @@
 import { Moderation, CaseAction } from "@prisma/client";
 import { Utility } from "@sapphire/plugin-utilities-store";
 import { Result } from "@sapphire/result";
-import { APIEmbed, ChannelType, Guild, Snowflake, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
+import {
+  APIEmbed,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelType,
+  Guild,
+  Snowflake,
+  TimestampStyles,
+  User,
+  hyperlink,
+  messageLink,
+  time,
+} from "discord.js";
 import { captureException } from "@sentry/node";
 import { Time } from "@sapphire/time-utilities";
 
@@ -44,9 +57,11 @@ export class ModerationUtility extends Utility {
       try {
         const user = await this.container.client.users.fetch(data.userId);
 
-        const userEmbed = { ...embed, description: `You have recieved a punishment in \`${guild.name}\`\n\n${embed.description}` };
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder().setCustomId("void").setDisabled(true).setStyle(ButtonStyle.Primary).setLabel(`Sent from ${guild.name}`)
+        );
 
-        await user.send({ embeds: [userEmbed] });
+        await user.send({ embeds: [embed], components: [row] });
       } catch (_err) {}
     }
 
