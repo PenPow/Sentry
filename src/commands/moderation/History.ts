@@ -50,7 +50,7 @@ export class HistoryCommand extends Command {
         color: 0x86b53a,
       };
 
-      return interaction.reply({ embeds: [embed] });
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     return this.sharedRun(interaction, guild.cases);
@@ -72,7 +72,7 @@ export class HistoryCommand extends Command {
         color: 0x86b53a,
       };
 
-      return interaction.reply({ embeds: [embed] });
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     return this.sharedRun(interaction, guild.cases);
