@@ -8,6 +8,47 @@ services:
     tty: true
     env_file:
       - .env
+    links:
+      - db
+      - redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    restart: always
+    expose:
+      - 6379
+    volumes: 
+      - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   watchtower:
     image: containrrr/watchtower
@@ -19,3 +60,9 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
     command: --label-enable --http-api-update --http-api-token updatesentry
+    
+volumes:
+  db:
+    driver: local
+  redis:
+    driver: local

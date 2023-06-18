@@ -1,10 +1,55 @@
 version: "3.8"
 
 services:
-  sentry:
+  bot:
     build:
       dockerfile: docker/Dockerfile
       context: ./
     tty: true
     env_file:
       - .env
+    links:
+      - db
+      - redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    restart: always
+    expose:
+      - 6379
+    volumes: 
+      - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+volumes:
+  db:
+    driver: local
+  redis:
+    driver: local

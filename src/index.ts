@@ -1,5 +1,6 @@
 import "@sapphire/plugin-logger/register";
 import "@sapphire/plugin-utilities-store/register";
+import "@sapphire/plugin-scheduled-tasks/register";
 import "dotenv/config";
 
 import { LogLevel, SapphireClient, ApplicationCommandRegistries, RegisterBehavior } from "@sapphire/framework";
@@ -13,6 +14,15 @@ const client = new SapphireClient({
   logger: {
     level: LogLevel.Debug,
   },
+  tasks: {
+    bull: {
+      connection: {
+        port: 6379,
+        host: "redis",
+        db: 0,
+      },
+    },
+  },
 });
 
 try {
@@ -22,8 +32,6 @@ try {
 }
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
-
-client.logger.info("Logged In");
 
 /** Injected at build-time by docker */
 export const version = process.env.GIT_COMMIT;

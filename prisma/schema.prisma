@@ -9,3 +9,36 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Guild {
+  id    String       @id @unique
+  cases Moderation[]
+}
+
+enum CaseAction {
+  Warn
+  Timeout
+  Kick
+  Softban
+  Ban
+  Unban
+  Untimeout
+}
+
+model Moderation {
+  id Int @id @unique @default(autoincrement())
+  caseId          Int
+  createdAt       DateTime     @default(now())
+  duration        Int?
+  guildId         String
+  guild           Guild        @relation(fields: [guildId], references: [id])
+  moderatorId     String       @default("934121887829737562") // default = sentry bot id
+  reason          String /// @encrypted
+  modLogMessageId String?
+  action          CaseAction
+  userId          String
+  referenceId Int?
+  caseReference   Moderation?  @relation("CaseReference", fields: [referenceId], references: [id])
+  references      Moderation[] @relation("CaseReference")
+  userName        String /// Username at time of punishment
+}
