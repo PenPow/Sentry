@@ -44,7 +44,10 @@ export class CaseCommand extends Subcommand {
   public async chatInputLookupCase(interaction: Subcommand.ChatInputCommandInteraction<"cached">) {
     const caseNo = interaction.options.getInteger("case", true);
 
-    const modCase = await this.container.prisma.moderation.findUnique({ where: { caseId: caseNo }, include: { caseReference: true } });
+    const modCase = await this.container.prisma.moderation.findFirst({
+      where: { caseId: caseNo, guildId: interaction.guildId },
+      include: { caseReference: true },
+    });
 
     if (!modCase) {
       const embed: APIEmbed = {
@@ -64,7 +67,10 @@ export class CaseCommand extends Subcommand {
   public async chatInputEditCase(interaction: Subcommand.ChatInputCommandInteraction<"cached">) {
     const caseNo = interaction.options.getInteger("case", true);
 
-    const modCase = await this.container.prisma.moderation.findUnique({ where: { caseId: caseNo }, include: { caseReference: true } });
+    const modCase = await this.container.prisma.moderation.findFirst({
+      where: { caseId: caseNo, guildId: interaction.guildId },
+      include: { caseReference: true },
+    });
 
     if (!modCase) {
       const embed: APIEmbed = {
@@ -76,7 +82,7 @@ export class CaseCommand extends Subcommand {
     }
 
     const reason = interaction.options.getString("reason", true);
-    const newCase = await this.container.prisma.moderation.update({ where: { caseId: caseNo }, data: { reason }, include: { caseReference: true } });
+    const newCase = await this.container.prisma.moderation.update({ where: { id: modCase.id }, data: { reason }, include: { caseReference: true } });
 
     const moderator = await interaction.client.users.fetch(modCase.moderatorId);
 

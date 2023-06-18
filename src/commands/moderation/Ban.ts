@@ -66,9 +66,10 @@ export class BanCommand extends Command {
     const expiration = expirationOption ? new Duration(expirationOption) : null;
 
     if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference } });
+      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
 
-      if (!referencedCase) reference = null;
+      if (referencedCase) reference = referencedCase.id;
+      else reference = null;
     }
 
     const modCase = await this.container.utilities.moderation.createCase(
@@ -81,16 +82,12 @@ export class BanCommand extends Command {
         action: "Ban",
         userId: user.id,
         userName: user.username,
-        caseReferenceId: reference,
+        referenceId: reference,
       },
       dm
     );
 
-    const [caseData, embed] = modCase.expect("Expected case data");
-
-    if (expiration instanceof Duration && !Number.isNaN(expiration.offset)) {
-      await this.container.tasks.create("expiringCase", { id: caseData.caseId }, expiration.offset);
-    }
+    const [_caseData, embed] = modCase.expect("Expected case data");
 
     return interaction.reply({ embeds: [embed] });
   }

@@ -37,9 +37,10 @@ export class UntimeoutCommand extends Command {
     let reference = interaction.options.getInteger("reference", false);
 
     if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference } });
+      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
 
-      if (!referencedCase) reference = null;
+      if (referencedCase) reference = referencedCase.id;
+      else reference = null;
     }
 
     const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
@@ -50,7 +51,7 @@ export class UntimeoutCommand extends Command {
       action: "Untimeout",
       userId: user.id,
       userName: user.username,
-      caseReferenceId: reference,
+      referenceId: reference,
     });
 
     const [_caseData, embed] = modCase.expect("Expected case data");
@@ -64,7 +65,7 @@ export class UntimeoutCommand extends Command {
     const message = interaction.targetMessage;
 
     const caseNo = message.embeds[0]?.footer?.text.split("#")[1] ?? "-1";
-    const modCase = await this.container.prisma.moderation.findUnique({ where: { caseId: parseInt(caseNo, 10) ?? -1 } });
+    const modCase = await this.container.prisma.moderation.findFirst({ where: { caseId: parseInt(caseNo, 10) ?? -1, guildId: interaction.guildId } });
 
     if (!modCase || modCase.action !== "Ban") {
       const embed: APIEmbed = {
@@ -77,7 +78,7 @@ export class UntimeoutCommand extends Command {
     }
 
     const modal = new ModalBuilder()
-      .setCustomId(`mod-${CaseAction.Unban}.${modCase.userId}-${modCase.userName}-${modCase.caseId}`)
+      .setCustomId(`mod-${CaseAction.Unban}.${modCase.userId}-${modCase.userName}-${modCase.id}`)
       .setTitle("Create New Unban")
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(

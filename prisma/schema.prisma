@@ -26,7 +26,8 @@ enum CaseAction {
 }
 
 model Moderation {
-  caseId          Int       @id @unique
+  id Int @id @unique @default(autoincrement())
+  caseId          Int
   createdAt       DateTime     @default(now())
   duration        Int?
   guildId         String
@@ -36,8 +37,8 @@ model Moderation {
   modLogMessageId String?
   action          CaseAction
   userId          String
-  caseReferenceId Int?
-  caseReference   Moderation?  @relation("CaseReference", fields: [caseReferenceId], references: [caseId])
+  referenceId Int?
+  caseReference   Moderation?  @relation("CaseReference", fields: [referenceId], references: [id])
   references      Moderation[] @relation("CaseReference")
   userName        String /// Username at time of punishment
 }

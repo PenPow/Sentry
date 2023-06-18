@@ -10,14 +10,14 @@ export type CaseScheduledTaskPayload = {
 })
 export class ModerationTask extends ScheduledTask {
   public async run(payload: CaseScheduledTaskPayload) {
-    const modCase = await this.container.prisma.moderation.findUnique({ where: { caseId: payload.id } });
+    const modCase = await this.container.prisma.moderation.findFirst({ where: { id: payload.id } });
     if (!modCase) return;
 
     const guild = await this.container.client.guilds.fetch(modCase.guildId);
 
     switch (modCase.action) {
       case "Warn":
-        await this.container.prisma.moderation.delete({ where: { caseId: payload.id } });
+        await this.container.prisma.moderation.delete({ where: { id: modCase.id } });
         break;
       case "Ban": {
         const caseResult = await this.container.utilities.moderation.createCase(guild, {
@@ -28,7 +28,7 @@ export class ModerationTask extends ScheduledTask {
           action: "Unban",
           userId: modCase.userId,
           userName: modCase.userName,
-          caseReferenceId: modCase.caseId,
+          referenceId: modCase.caseId,
         });
 
         caseResult.expect("case to not be err");

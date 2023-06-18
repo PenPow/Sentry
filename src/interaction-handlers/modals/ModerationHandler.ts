@@ -27,7 +27,7 @@ export class ModalHandler extends InteractionHandler {
       action: parameters.action,
       userId: parameters.user.id,
       userName: parameters.user.name,
-      caseReferenceId: reference,
+      referenceId: reference,
     });
 
     const [_caseData, embed] = modCase.expect("Expected case data");

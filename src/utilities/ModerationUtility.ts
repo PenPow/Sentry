@@ -18,7 +18,7 @@ import {
 import { captureException } from "@sentry/node";
 import { Time } from "@sapphire/time-utilities";
 
-export type Case = Omit<Moderation, "createdAt" | "caseId" | "modLogMessageId">;
+export type Case = Omit<Moderation, "id" | "createdAt" | "caseId" | "modLogMessageId">;
 export type CaseWithReference = Omit<Moderation, "action"> & { action: CaseAction | "Punishment Expiry"; caseReference: Moderation | null };
 
 export const LogChannelNames = ["modlogs", "modlog", "mod-log", "mod-logs", "logs", "sentry-logs", "sentry-log"];
@@ -46,7 +46,7 @@ export class ModerationUtility extends Utility {
     });
 
     if (data.duration) {
-      await this.container.tasks.create("expiringCase", { id: modCase.caseId }, data.duration);
+      await this.container.tasks.create("expiringCase", { id: modCase.id }, data.duration);
     }
 
     const moderator = await this.container.client.users.fetch(data.moderatorId);
@@ -120,8 +120,9 @@ export class ModerationUtility extends Utility {
     try {
       const message = await channel.send({ embeds: [embed] });
 
-      if (data.action !== "Punishment Expiry")
-        await this.container.prisma.moderation.update({ where: { caseId: data.caseId }, data: { modLogMessageId: message.id } });
+      if (data.action !== "Punishment Expiry") {
+        await this.container.prisma.moderation.update({ where: { id: data.id }, data: { modLogMessageId: message.id } });
+      }
 
       return Result.ok(embed);
     } catch (error) {
@@ -158,10 +159,8 @@ export class ModerationUtility extends Utility {
     };
   }
 
-  public generateCaseId(_guildId: Snowflake): Promise<number> {
-    // TODO: Move to guild based buckets, currently blocked due to the fact that I am stupid and made the caseId the primary key
-    // I need to somehow move the caseId to be a non unique key, and then update all the code to still make it searchable
-    return this.container.redis.incr(`p-id`);
+  public generateCaseId(guildId: Snowflake): Promise<number> {
+    return this.container.redis.incr(`p-id-${guildId}`);
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {

@@ -56,9 +56,10 @@ export class SoftbanCommand extends Command {
     let reference = interaction.options.getInteger("reference", false);
 
     if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference } });
+      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
 
-      if (!referencedCase) reference = null;
+      if (referencedCase) reference = referencedCase.id;
+      else reference = null;
     }
 
     const modCase = await this.container.utilities.moderation.createCase(
@@ -71,7 +72,7 @@ export class SoftbanCommand extends Command {
         action: "Softban",
         userId: user.id,
         userName: user.username,
-        caseReferenceId: reference,
+        referenceId: reference,
       },
       dm
     );
