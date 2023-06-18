@@ -10,7 +10,7 @@ export class AutocompleteHandler extends InteractionHandler {
   public override parse(interaction: AutocompleteInteraction) {
     if (!interaction.inCachedGuild()) return this.none();
 
-    if (!["warn", "timeout", "kick", "softban"].includes(interaction.commandName)) return this.none();
+    if (!["warn", "timeout", "kick", "softban", "ban", "unban"].includes(interaction.commandName)) return this.none();
 
     const option = interaction.options.getFocused(true);
     if (option.name !== "reference") return this.none();

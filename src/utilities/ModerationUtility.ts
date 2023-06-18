@@ -33,6 +33,12 @@ export class ModerationUtility extends Utility {
           await guild.members.ban(data.userId, { deleteMessageSeconds: (Time.Day * 7) / Time.Second, reason: data.reason });
           await guild.bans.remove(data.userId, "Removing ban as part of softban");
           break;
+        case "Ban":
+          await guild.members.ban(data.userId, { deleteMessageSeconds: (Time.Day * 7) / Time.Second, reason: data.reason });
+          break;
+        case "Unban":
+          await guild.bans.remove(data.userId, "Removing ban as part of softban");
+          break;
       }
     } catch (error) {
       this.container.logger.error(error);
@@ -153,6 +159,10 @@ export class ModerationUtility extends Utility {
         return 0xffa05e;
       case "Punishment Expiry":
         return 0x1e1e21;
+      case "Unban":
+        return 0x8ac926;
+      case "Ban":
+        return 0xff595e;
       default:
         this.container.logger.fatal(`Punishment type ${type} has no configured colour`);
         return 0x000000;
