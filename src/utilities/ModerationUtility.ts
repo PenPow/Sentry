@@ -86,6 +86,9 @@ export class ModerationUtility extends Utility {
         case "Unban":
           await guild.bans.remove(data.userId, "Removing ban as part of softban");
           break;
+        case "Untimeout":
+          await guild.members.edit(data.userId, { communicationDisabledUntil: null });
+          break;
       }
     } catch (error) {
       this.container.logger.error(error);
@@ -195,6 +198,7 @@ export class ModerationUtility extends Utility {
       case "Punishment Expiry":
         return 0x1e1e21;
       case "Unban":
+      case "Untimeout":
         return 0x8ac926;
       case "Ban":
         return 0xff595e;
