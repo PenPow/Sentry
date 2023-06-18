@@ -84,15 +84,15 @@ jobs:
         run: npm ci
 
       - name: Build Code
-        run: npx tsc
+        run: npm run build --workspaces
 
       - name: Authenticate Sentry
         run: ./node_modules/.bin/sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload Sentry Release
         run: |
-          chmod +x ./scripts/buildSentryRelease.sh
-          ./scripts/buildSentryRelease.sh
+          chmod +x ./apps/sentry/scripts/buildSentryRelease.sh
+          ./apps/sentry/scripts/buildSentryRelease.sh
         shell: bash
 
   deployment:

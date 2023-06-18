@@ -18,16 +18,16 @@ WORKDIR /usr/sentry
 
 RUN addgroup --system --gid 1001 sentry && adduser --system --uid 1001 sentry
 
-COPY package.json package-lock.json ./
+COPY ./apps/sentry/package.json package-lock.json ./
 
 RUN npm ci --ignore-scripts
 
 COPY tsconfig.json  ./
 
-COPY prisma/ prisma/
+COPY apps/sentry/prisma/ prisma/
 RUN npx prisma generate
 
-COPY src/ src/ 
+COPY apps/sentry/src/ src/ 
 
 RUN npm run build
 

@@ -3,7 +3,7 @@ version: "3.8"
 services:
   bot:
     build:
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Sentry.Dockerfile
       context: ./
     tty: true
     env_file:

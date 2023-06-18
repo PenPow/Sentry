@@ -1,0 +1,5 @@
+node_modules/
+./.eslintrc.cjs
+./prettier.config.cjs
+./commitlint.config.cjs
+scripts/**/*

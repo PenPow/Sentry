@@ -1,5 +1,6 @@
 {
 	"markdown.extension.toc.updateOnSave": false,
+	"json.schemaDownload.enable": true,
 	"files.eol": "\n",
 	"editor.indentSize": 2,
 	"editor.insertSpaces": true,
