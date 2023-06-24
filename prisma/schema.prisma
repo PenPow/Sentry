@@ -23,6 +23,8 @@ enum CaseAction {
   Ban
   Unban
   Untimeout
+  VMute
+  VDeafen
 }
 
 model Moderation {
