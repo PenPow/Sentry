@@ -108,7 +108,8 @@ jobs:
         with:
           token: '${{ github.token }}'
           initial-status: 'in_progress'
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
+          sha: ${{ github.sha }}
           auto-inactive: false
           environment: Production Bot
 
