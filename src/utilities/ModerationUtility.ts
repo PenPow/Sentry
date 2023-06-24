@@ -66,6 +66,12 @@ export class ModerationUtility extends Utility {
       switch (data.action) {
         case "Warn":
           break;
+        case "VMute":
+          await guild.members.edit(data.userId, { mute: true });
+          break;
+        case "VDeafen":
+          await guild.members.edit(data.userId, { mute: true, deaf: true });
+          break;
         case "Timeout":
           await guild.members.edit(data.userId, { communicationDisabledUntil: new Date(Date.now() + data.duration!), reason: data.reason });
           break;
@@ -152,7 +158,7 @@ export class ModerationUtility extends Utility {
   }
 
   private async createCaseDescription(guild: Guild, data: CaseWithReference): Promise<string> {
-    let description = `**Member**: \`${data.userName}\` (${data.userId})\n**Action**: ${data.action}`;
+    let description = `**Member**: \`${data.userName}\` (${data.userId})\n**Action**: ${this.getCaseActionName(data.action)}`;
 
     if (data.duration) {
       description += `\n**Expiration**: ${time(new Date(Date.now() + data.duration * Time.Second), TimestampStyles.RelativeTime)}`;
@@ -176,10 +182,23 @@ export class ModerationUtility extends Utility {
     return description;
   }
 
+  private getCaseActionName(type: CaseAction | "Punishment Expiry") {
+    switch (type) {
+      case "VMute":
+        return "Voice Mute";
+      case "VDeafen":
+        return "Voice Deafen";
+      default:
+        return type;
+    }
+  }
+
   private getEmbedColour(type: CaseAction | "Punishment Expiry"): number {
     switch (type) {
       case "Warn":
       case "Timeout":
+      case "VMute":
+      case "VDeafen":
         return 0xffca3a;
       case "Kick":
       case "Softban":
@@ -191,9 +210,6 @@ export class ModerationUtility extends Utility {
         return 0x8ac926;
       case "Ban":
         return 0xff595e;
-      default:
-        this.container.logger.fatal(`Punishment type ${type} has no configured colour`);
-        return 0x000000;
     }
   }
 }
