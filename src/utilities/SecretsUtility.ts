@@ -14,7 +14,7 @@ export async function getToken(): Promise<string> {
 
   obtainedToken = true;
 
-  return secrets["DISCORD_TOKEN"]!;
+  return secrets[process.env.NODE_ENV === "PRODUCTION" ? "DISCORD_TOKEN" : "CANARY_DISCORD_TOKEN"]!;
 }
 
 export class SecretsUtility extends Utility {
