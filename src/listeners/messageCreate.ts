@@ -22,7 +22,7 @@ export class MessageCreateListener extends Listener<typeof Events.MessageCreate>
       );
 
       if (this.container.utilities.security.check(domain.hostname)) {
-        await this.container.utilities.moderation.createCase(
+        const modCase = await this.container.utilities.moderation.createCase(
           message.guild,
           {
             reason: "Malicious Domain Detected",
@@ -36,6 +36,8 @@ export class MessageCreateListener extends Listener<typeof Events.MessageCreate>
           },
           true
         );
+
+        modCase.unwrap();
 
         break; // Exit so we dont check the further domains - they are already banned
       }
