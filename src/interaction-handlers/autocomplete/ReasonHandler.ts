@@ -10,7 +10,8 @@ export class AutocompleteHandler extends InteractionHandler {
   private readonly DEFAULT_REASONS = ["TOS Violation(s)", "NSFW", "Scam/Spam Account", "Harassment"];
 
   public override parse(interaction: AutocompleteInteraction) {
-    if (!["warn", "timeout", "kick", "softban", "ban", "unban", "untimeout", "case"].includes(interaction.commandName)) return this.none();
+    if (!["warn", "timeout", "kick", "softban", "ban", "unban", "untimeout", "case", "vmute", "vdeafen"].includes(interaction.commandName))
+      return this.none();
 
     const option = interaction.options.getFocused(true);
 

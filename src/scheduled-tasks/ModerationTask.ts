@@ -34,6 +34,12 @@ export class ModerationTask extends ScheduledTask {
         caseResult.expect("case to not be err");
         break;
       }
+      case "VMute":
+        await guild.members.edit(modCase.userId, { mute: false });
+        break;
+      case "VDeafen":
+        await guild.members.edit(modCase.userId, { mute: false, deaf: false });
+        break;
       default:
         break;
     }
