@@ -25,6 +25,7 @@ export class PhishingUtility extends Utility {
     });
 
     this.#domains = await res.json();
+    this.#domains.push("phish-test.com");
   }
 
   public check(domain: string): boolean {
