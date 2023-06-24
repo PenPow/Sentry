@@ -2,7 +2,7 @@
 import { SecretsUtility } from "../utilities/SecretsUtility.ts";
 import { EmbedsUtility } from "../utilities/EmbedUtility.ts";
 import { ModerationUtility } from "../utilities/ModerationUtility.ts";
-import { PhishingUtility } from "../utilities/PhishingUtility.ts";
+import { SecurityUtility } from "../utilities/SecurityUtility.ts";
 import { PrismaClient } from "@prisma/client";
 import { Redis } from "ioredis";
 
@@ -26,7 +26,7 @@ declare module "@sapphire/plugin-utilities-store" {
     secrets: SecretsUtility;
     embeds: EmbedsUtility;
     moderation: ModerationUtility;
-    phishing: PhishingUtility;
+    security: SecurityUtility;
   }
 }
 

@@ -4,14 +4,24 @@ import normalizeUrl from "normalize-url";
 
 export class MessageCreateListener extends Listener<typeof Events.MessageCreate> {
   public async run(message: Message) {
+    if (message.author.bot || message.author.system) return;
     if (!message.inGuild()) return;
 
     const matches = message.content.match(/(?:https?:\/\/)?\S{2,}\.\S{2,18}\/?\S*/gi);
 
     for (const match of matches ?? []) {
-      const domain = new URL(normalizeUrl(match, { stripHash: true, stripAuthentication: true, normalizeProtocol: true, stripTextFragment: true }));
+      const domain = new URL(
+        normalizeUrl(match, {
+          stripHash: true,
+          stripAuthentication: true,
+          normalizeProtocol: true,
+          stripTextFragment: true,
+          removeQueryParameters: true,
+          removeTrailingSlash: true,
+        })
+      );
 
-      if (this.container.utilities.phishing.check(domain.hostname)) {
+      if (this.container.utilities.security.check(domain.hostname)) {
         await this.container.utilities.moderation.createCase(
           message.guild,
           {

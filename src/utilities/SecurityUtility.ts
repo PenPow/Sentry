@@ -1,13 +1,13 @@
 import { Utility } from "@sapphire/plugin-utilities-store";
 import { Time } from "@sapphire/time-utilities";
 
-export class PhishingUtility extends Utility {
+export class SecurityUtility extends Utility {
   #domains: string[];
 
   public constructor(context: Utility.Context, options: Utility.Options) {
     super(context, {
       ...options,
-      name: "phishing",
+      name: "security",
     });
 
     this.#domains = [];
