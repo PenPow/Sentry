@@ -8,7 +8,13 @@ import { GatewayIntentBits } from "discord.js";
 import { getToken } from "./utilities/SecretsUtility.js";
 
 const client = new SapphireClient({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.AutoModerationExecution,
+    GatewayIntentBits.GuildModeration,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
   disableMentionPrefix: false,
   shards: "auto",
   logger: {
