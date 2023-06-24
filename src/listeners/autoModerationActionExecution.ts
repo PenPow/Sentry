@@ -7,7 +7,7 @@ export class AutoModerationActionExecutionEvent extends Listener<typeof Events.A
     const { guild, user } = event;
 
     if (event.ruleTriggerType === AutoModerationRuleTriggerType.Spam) {
-      await this.container.utilities.moderation.createCase(
+      const modCase = await this.container.utilities.moderation.createCase(
         guild,
         {
           reason: "Spam",
@@ -21,8 +21,10 @@ export class AutoModerationActionExecutionEvent extends Listener<typeof Events.A
         },
         true
       );
+
+      modCase.unwrap();
     } else if (event.ruleTriggerType === AutoModerationRuleTriggerType.MentionSpam) {
-      await this.container.utilities.moderation.createCase(
+      const modCase = await this.container.utilities.moderation.createCase(
         guild,
         {
           reason: "Mention Spam",
@@ -36,6 +38,8 @@ export class AutoModerationActionExecutionEvent extends Listener<typeof Events.A
         },
         true
       );
+
+      modCase.unwrap();
     }
   }
 }
