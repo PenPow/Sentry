@@ -12,7 +12,7 @@ import {
   TextChannel,
 } from "discord.js";
 
-@ApplyOptions<Listener.Options>({})
+@ApplyOptions<Listener.Options>({ enabled: false }) // TODO: Renable once we have ideas for automod regex patterns/dashboard functionality to add rules
 export class GuildCreateListener extends Listener<typeof Events.GuildCreate> {
   public async run(guild: Guild) {
     if (!guild.features.includes(GuildFeature.AutoModeration)) return;
