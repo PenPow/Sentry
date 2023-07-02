@@ -1,8 +1,13 @@
-<script>
+<script lang="ts">
 	import About from '$lib/components/About.svelte';
+	import BlogPosts from '$lib/components/BlogPosts.svelte';
 	import Header from '$lib/components/Header.svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import { Hr } from 'flowbite-svelte';
+
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 </script>
 
 <Navbar />
@@ -12,5 +17,8 @@
 		<Header />
 		<Hr divClass="mt-12" />
 		<About />
+		<div class="text-left mt-8">
+			<BlogPosts posts={data.posts} />
+		</div>
 	</div>
 </section>
