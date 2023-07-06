@@ -8,5 +8,4 @@
 	const posts = data.posts ?? [];
 </script>
 
-<Navbar />
 <BlogPosts {posts} />

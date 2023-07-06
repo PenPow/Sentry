@@ -8,10 +8,10 @@
 				<a href="/dashboard" class="text-sm leading-6 text-gray-600">Dashboard</a>
 			</div>
 			<div class="pb-6 px-6">
-				<a href="/tos" class="text-sm leading-6 text-gray-600">Terms of Service</a>
+				<a href="/docs/tos" class="text-sm leading-6 text-gray-600">Terms of Service</a>
 			</div>
 			<div class="pb-6 px-6">
-				<a href="/privacy" class="text-sm leading-6 text-gray-600">Privacy Policy</a>
+				<a href="/docs/privacy" class="text-sm leading-6 text-gray-600">Privacy Policy</a>
 			</div>
 		</nav>
 		<p class="mt-10 text-center text-xs leading-5 text-gray-500">

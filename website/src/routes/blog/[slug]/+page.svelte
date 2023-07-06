@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
-	import { Hr } from 'flowbite-svelte'
+	import { Hr } from 'flowbite-svelte';
 	import type { PageData } from '../[slug]/$types';
 
 	export let data: PageData;
@@ -18,8 +18,6 @@
 	<meta property="og:url" content="{$page.url.href}"/>
 </svelte:head> -->
 
-<Navbar />
-
 <div class="bg-white px-6 py-32 lg:px:8">
 	<div class="mx-auto max-w-3xl text-base leading-7 text-gray-900">
 		<div class="relative mb-4 flex items-center gap-x-4">
@@ -31,7 +29,9 @@
 				</p>
 			</div>
 		</div>
-		<h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">{metadata.title}</h1>
+		<h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">
+			{metadata.title}
+		</h1>
 		<p class="mt-6 text-xl leading-8 max-w-2xl">
 			{metadata.excerpt}
 		</p>

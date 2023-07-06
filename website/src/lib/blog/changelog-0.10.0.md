@@ -1,5 +1,5 @@
 ---
-title: "Sentry Changelog: v0.10.0"
+title: 'Sentry Changelog: v0.10.0'
 authorName: PenPow
 authorIcon: https://cdn.penpow.dev/u/dhuzy0.png
 date: 2023-06-24
@@ -11,7 +11,7 @@ excerpt: Have a peek at the latest features added to Sentry in release v0.10.0
   import { Alert } from 'flowbite-svelte';
 </script>
 
-Besides this new snazzy new website, Sentry v0.10.0 brings us two major features of interest: [Voice Mutes/Deafens](#voice-mutesdeafens) and [Malicious Domain Scanning](#malicious-domain-scanning).
+Besides this new snazzy website, Sentry v0.10.0 brings us two major features of interest: [Voice Mutes/Deafens](#voice-mutesdeafens) and [Malicious Domain Scanning](#malicious-domain-scanning).
 
 We also spent a lot of time on both this and prior updates to improve our development experience with Sentry, especially in regards to deployment. You can read more about these changes [here](#dx-behind-the-scenes-changes).
 
@@ -30,7 +30,7 @@ which mute and deafen the user respectively.
 
 As with other most punishments, they do support expirations so no more muting a member and forgetting about it!
 
-*This feature was added in #49*
+_This feature was added in #49_
 
 ## Malicious Domain Scanning
 
@@ -81,7 +81,7 @@ This brings our workflow up to this:
 
 ![Our environment integration](https://cdn.penpow.dev/u/e37f3ed6-4fe7-4c50-bc72-091b0d33ef5c.png)
 
-This took a while to build, however surprisingly after just... *checks notes* ... 7 test workflows we got it working in a fairly stable manner. This means that from now on I never have to touch the server to deploy Sentry which I am incredibly pleased about. 
+This took a while to build, however surprisingly after just... _checks notes_ ... 7 test workflows we got it working in a fairly stable manner. This means that from now on I never have to touch the server to deploy Sentry which I am incredibly pleased about.
 
 ## Our Roadmap for the Future
 
