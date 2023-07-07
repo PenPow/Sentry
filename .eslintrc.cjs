@@ -8,15 +8,13 @@ module.exports = {
 		warnOnUnsupportedTypeScriptVersion: false,
 	},
 	plugins: ["deprecation"],
-	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'plugin:@sapphire/result/recommended', "plugin:node/recommended", 'plugin:import/recommended', 'plugin:import/typescript'],
+	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', "plugin:node/recommended", 'plugin:import/recommended', 'plugin:import/typescript'],
 	settings: {
 		"import/parsers": {
 			"@typescript-eslint/parser": [".ts", ".tsx"]
 		  },
 		  "import/resolver": {
-			"typescript": {
-			  "alwaysTryTypes": true,
-			}
+			"typescript": true
 		  }
 	},
 	ignorePatterns: ["node_modules", ".eslintrc.cjs", "commitlint.config.js", "tsup.config.ts", "dist"],
@@ -148,6 +146,7 @@ module.exports = {
 		'id-blacklist': 'off',
 		'id-length': 'off',
 		'id-match': 'off',
+		"indent": ["error", 4],
 		'init-declarations': 'off',
 		'line-comment-position': 'off',
 		'lines-between-class-members': [
