@@ -1,6 +1,6 @@
 import { Time } from "@sapphire/time-utilities";
-import { APIEmbed, ChannelType, Guild, TimestampStyles, User, hyperlink, messageLink, time } from "discord.js";
-import { CaseWithReference } from "../types/Punishment.js";
+import { APIEmbed, APIEmbedAuthor, ChannelType, Guild, TimestampStyles, hyperlink, messageLink, time } from "discord.js";
+import { CaseWithReference, UserLike } from "../types/Punishment.js";
 import { prettifyCaseActionName, convertActionToColor } from "./Punishments.js";
 import { prisma } from "./Prisma.js";
 
@@ -15,11 +15,12 @@ async function getGuildLogChannel(guild: Guild) {
     return channel;
 }
 
-async function createEmbed(guild: Guild, moderator: User, data: CaseWithReference): Promise<APIEmbed> {
+export async function createEmbed(guild: Guild, moderator: UserLike, data: CaseWithReference): Promise<APIEmbed> {
     let description = `**Member**: \`${data.userName}\` (${data.userId})\n**Action**: ${prettifyCaseActionName(data.action)}`;
 
     if (data.duration) {
-        description += `\n**Expiration**: ${time(new Date(Date.now() + data.duration * Time.Second), TimestampStyles.RelativeTime)}`;
+        const date = new Date((data.createdAt ? data.createdAt.getTime() : Date.now()) + data.duration * Time.Second);
+        description += `\n**Expiration**: ${time(date, TimestampStyles.RelativeTime)}`;
     }
 
     description += `\n**Reason**: ${data.reason}`;
@@ -36,13 +37,20 @@ async function createEmbed(guild: Guild, moderator: User, data: CaseWithReferenc
             description += `\n**Case Reference**: \`#${data.caseReference.caseId}\``;
         }
     }
+
+    if (data.frozen) {
+        description += '\n\n**Flags**\n🧊 Frozen';
+    }
+
+    const author = {
+        name: `${moderator.username} (${moderator.id})`, // FIXME: Replace with Pomelo once released
+    } as APIEmbedAuthor;
+
+    if(moderator.displayAvatarURL?.()) author.icon_url = moderator.displayAvatarURL();
     
     return {
         color: convertActionToColor(data.action),
-        author: {
-            name: `${moderator.username} (${moderator.id})`, // FIXME: Replace with Pomelo once released
-            icon_url: moderator.displayAvatarURL(),
-        },
+        author,
         timestamp: new Date(data.createdAt).toISOString(),
         description,
         footer: {
@@ -51,7 +59,7 @@ async function createEmbed(guild: Guild, moderator: User, data: CaseWithReferenc
     };
 }
 
-export async function postModLogMessage(guild: Guild, moderator: User, data: CaseWithReference): Promise<APIEmbed> {
+export async function postModLogMessage(guild: Guild, moderator: UserLike, data: CaseWithReference): Promise<APIEmbed> {
     const embed = createEmbed(guild, moderator, data);
 
     const channel = await getGuildLogChannel(guild);

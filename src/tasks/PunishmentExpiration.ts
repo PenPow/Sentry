@@ -16,11 +16,13 @@ class PunishmentTaskManager extends ScheduledTaskManager<CaseWithReference, "pun
                 duration: null,
                 guildId: guild.id,
                 moderatorId: client.user!.id,
+                moderatorName: client.user!.username,
+                moderatorIconUrl: client.user!.displayAvatarURL(),
                 action: "Unban",
                 userId: payload.userId,
                 userName: payload.userName,
                 referenceId: payload.caseId,
-            });
+            }, { dm: false, dry: false });
         } else if(payload.action === "VDeafen" || payload.action === "VMute") {
             await guild.members.edit(payload.userId, { mute: false, deaf: false });
         } else if(payload.action === "Timeout") {
@@ -29,11 +31,13 @@ class PunishmentTaskManager extends ScheduledTaskManager<CaseWithReference, "pun
                 duration: null,
                 guildId: guild.id,
                 moderatorId: client.user!.id,
+                moderatorName: client.user!.username,
+                moderatorIconUrl: client.user!.displayAvatarURL(),
                 action: "Untimeout",
                 userId: payload.userId,
                 userName: payload.userName,
                 referenceId: payload.caseId,
-            });
+            }, { dm: false, dry: false });
         }
     }
 }

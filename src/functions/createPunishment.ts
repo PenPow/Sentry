@@ -23,6 +23,8 @@ export async function createPunishment(interaction: ChatInputCommandInteraction<
             reason,
             duration: null,
             moderatorId: interaction.user.id,
+            moderatorName: interaction.user.username,
+            moderatorIconUrl: interaction.user.displayAvatarURL(),
             action: type,
             userId: user.id,
             userName: user.username,

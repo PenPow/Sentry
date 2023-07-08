@@ -25,6 +25,12 @@ export async function getCaseId(guildId: Snowflake): Promise<number> {
     });
 }
 
+export async function isCaseFrozen(caseId: number, guildId: Snowflake) {
+    const { frozen } = await prisma.punishment.findUnique({ where: { guildId_caseId: { guildId, caseId }}}) ?? { frozen: false };
+
+    return frozen;
+}
+
 export function convertActionToColor(action: CaseAction): number {
     switch (action) {
     case "Warn":

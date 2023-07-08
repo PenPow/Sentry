@@ -28,22 +28,24 @@ enum CaseAction {
 }
 
 model Punishment {
-  id              Int          @id @unique @default(autoincrement())
-  caseId          Int
-  createdAt       DateTime     @default(now())
-  duration        Int?
-  guildId         String
-  guild           Guild        @relation(fields: [guildId], references: [id])
-  moderatorId     String       @default("934121887829737562") // default = sentry bot id
-  reason          String /// @encrypted
-  modLogMessageId String?
-  action          CaseAction
-  userId          String
-  referenceId     Int?
-  caseReference   Punishment?  @relation("CaseReference", fields: [referenceId], references: [id])
-  references      Punishment[] @relation("CaseReference")
-  userName        String /// Username at time of punishment
-  frozen          Boolean      @default(false)
+  id               Int          @id @unique @default(autoincrement())
+  caseId           Int
+  createdAt        DateTime     @default(now())
+  duration         Int?
+  guildId          String
+  guild            Guild        @relation(fields: [guildId], references: [id])
+  moderatorId      String       @default("934121887829737562") // default = sentry bot id
+  moderatorName    String       @default("Sentry")
+  moderatorIconUrl String       @default("https://github.com/PenPow/Sentry/blob/main/branding/SquareLogoNoText.png?raw=true")
+  reason           String /// @encrypted
+  modLogMessageId  String?
+  action           CaseAction
+  userId           String
+  referenceId      Int?
+  caseReference    Punishment?  @relation("CaseReference", fields: [referenceId], references: [id])
+  references       Punishment[] @relation("CaseReference")
+  userName         String /// Username at time of punishment
+  frozen           Boolean      @default(false)
 
   @@unique([guildId, caseId])
 }

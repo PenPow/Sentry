@@ -30,6 +30,8 @@ export async function createTimedPunishment(interaction: ChatInputCommandInterac
             reason,
             duration: Number.isNaN(expiration?.offset) ? null : expiration ? expiration.offset : null, // HACK: god there must be a nicer way to write this
             moderatorId: interaction.user.id,
+            moderatorName: interaction.user.username,
+            moderatorIconUrl: interaction.user.displayAvatarURL(),
             action: type,
             userId: user.id,
             userName: user.username,

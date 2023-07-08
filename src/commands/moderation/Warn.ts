@@ -25,7 +25,7 @@ import { createTimedPunishment } from "../../functions/createTimedPunishment.js"
 
 export default class WarnCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
-        if(!interaction.inCachedGuild()) return Option.none;
+        if(!interaction.inCachedGuild()) return Option.some({ message: 'Not in guild', context: "You must be in a guild to run this command" });
         
         const { member, guild } = interaction;
 
@@ -72,6 +72,8 @@ export default class WarnCommand implements Command {
                 reason: interaction.fields.getTextInputValue("reason"),
                 duration: null,
                 moderatorId: interaction.user.id,
+                moderatorName: interaction.user.username,
+                moderatorIconUrl: interaction.user.displayAvatarURL(),
                 action: "Warn",
                 userId,
                 userName: username,

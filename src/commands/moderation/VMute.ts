@@ -17,7 +17,7 @@ import { createTimedPunishment } from "../../functions/createTimedPunishment.js"
 
 export default class VoiceMuteCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
-        if(!interaction.inCachedGuild()) return Option.none;
+        if(!interaction.inCachedGuild()) return Option.some({ message: 'Not in guild', context: "You must be in a guild to run this command" });
         
         const { member, guild } = interaction;
 
