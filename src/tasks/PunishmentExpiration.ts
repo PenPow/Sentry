@@ -21,9 +21,7 @@ class PunishmentTaskManager extends ScheduledTaskManager<CaseWithReference, "pun
                 userName: payload.userName,
                 referenceId: payload.caseId,
             });
-        } else if(payload.action === "VMute") {
-            await guild.members.edit(payload.userId, { mute: false });
-        } else if(payload.action === "VDeafen") {
+        } else if(payload.action === "VDeafen" || payload.action === "VMute") {
             await guild.members.edit(payload.userId, { mute: false, deaf: false });
         } else if(payload.action === "Timeout") {
             await createCase(guild, {

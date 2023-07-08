@@ -60,7 +60,7 @@ export class SentryClient<Ready extends boolean = boolean> extends Client<Ready>
     }
 
     private async loadCommands() {
-        const files = await glob("./dist/commands/*.js");
+        const files = await glob("./dist/commands/**/*.js");
 
         for (const file of files.filter((name) => !name.includes('map'))) {
             // eslint-disable-next-line node/no-unsupported-features/es-syntax
@@ -116,7 +116,9 @@ declare module 'discord.js' {
         autocompleteError: [interaction: AutocompleteInteraction, error: Error]
         preconditionFailed: [interaction: CommandInteraction, result: PreconditionOption]
     
+        // eslint-disable-next-line no-warning-comments
         raw: [...data: any] // HACK: Stub
+        // eslint-disable-next-line no-warning-comments
         voiceServerUpdate: [...data: any] // HACK: Stub
     }
 }

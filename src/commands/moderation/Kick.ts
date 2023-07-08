@@ -14,17 +14,16 @@ import {
     TextInputStyle, 
     UserContextMenuCommandInteraction
 } from "discord.js";
-import { Command, PreconditionOption } from "../lib/framework/structures/Command.js";
-import { PermissionsValidator } from "../utilities/Permissions.js";
-import { permissionsV1 } from "../preconditions/SentryRequiresModerationPermissions.js";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { PermissionsValidator } from "../../utilities/Permissions.js";
+import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
 import { Option } from "@sapphire/result";
-import { prisma } from "../utilities/Prisma.js";
-import { PunishmentLock, createCase } from "../utilities/Punishments.js";
-import { Duration } from "@sapphire/time-utilities";
-import { reasonAutocompleteHandler } from "../handlers/Reason.js";
-import { referenceAutocompleteHandler } from "../handlers/Reference.js";
+import { PunishmentLock, createCase } from "../../utilities/Punishments.js";
+import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { createPunishment } from "../../functions/createPunishment.js";
 
-export default class HelloWorldCommand implements Command {
+export default class KickCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
         if(!interaction.inCachedGuild()) return Option.none;
         
@@ -37,45 +36,16 @@ export default class HelloWorldCommand implements Command {
         return permissionsV1(member, target, guild);
     }
 
-    public async chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
-        const user = interaction.options.getUser("user", true);
-        const reason = interaction.options.getString("reason", true);
-        const dm = interaction.options.getBoolean("dm", false) ?? true;
-
-        let reference = interaction.options.getInteger("reference", false);
-        if(reference) {
-            const caseReference = await prisma.punishment.findUnique({ where: { guildId_caseId: { caseId: reference, guildId: interaction.guildId } }});
-
-            if(caseReference) reference = caseReference.id;
-        }
-
-        const expirationOption = interaction.options.getString("expiration", false);
-        const expiration = expirationOption ? new Duration(expirationOption) : null;
-
-        await interaction.deferReply();
-
-        await PunishmentLock.acquire(`punishment-${user.id}`, async () => {
-            const [, embed] = await createCase(interaction.guild, {
-                guildId: interaction.guildId,
-                reason,
-                duration: Number.isNaN(expiration?.offset) ? null : expiration ? expiration.offset : null, // HACK: god there must be a nicer way to write this
-                moderatorId: interaction.user.id,
-                action: "Ban",
-                userId: user.id,
-                userName: user.username,
-                referenceId: reference
-            }, { dm, dry: false });
-
-            await interaction.editReply({ embeds: [embed ]});
-        });
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        return createPunishment(interaction, "Kick");
     }
 
     public async userContextMenuRun(interaction: UserContextMenuCommandInteraction<"cached">) {
         const user = interaction.targetUser;
 
         const modal = new ModalBuilder()
-            .setCustomId(`ban.${user.id}-${user.username}`)
-            .setTitle("Create New Ban")
+            .setCustomId(`kick.${user.id}-${user.username}`)
+            .setTitle("Create New Kick")
             .addComponents(
                 new ActionRowBuilder<TextInputBuilder>().addComponents(
                     new TextInputBuilder()
@@ -102,7 +72,7 @@ export default class HelloWorldCommand implements Command {
                 reason: interaction.fields.getTextInputValue("reason"),
                 duration: null,
                 moderatorId: interaction.user.id,
-                action: "Ban",
+                action: "Kick",
                 userId,
                 userName: username,
                 referenceId: null
@@ -122,17 +92,17 @@ export default class HelloWorldCommand implements Command {
         }
     }
 
-    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] { // TODO: Add Context Menu Command
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
         return [
             {
-                name: 'ban',
-                description: 'Ban a user from your server.',
+                name: 'kick',
+                description: 'Kick a user from your server.',
                 dm_permission: false,
-                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.BanMembers).valueOf()),
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.KickMembers).valueOf()),
                 options: [
                     {
                         name: 'user',
-                        description: 'The user to ban',
+                        description: 'The user to kick',
                         type: ApplicationCommandOptionType.User,
                         required: true,
                     },
@@ -142,10 +112,11 @@ export default class HelloWorldCommand implements Command {
                         type: ApplicationCommandOptionType.String,
                         max_length: 500,
                         autocomplete: true,
+                        required: true,
                     },
                     {
                         name: 'dm',
-                        description: 'Message the user with details of their punishments',
+                        description: 'Message the user with details of their punishment',
                         type: ApplicationCommandOptionType.Boolean,
                     },
                     {
@@ -154,19 +125,14 @@ export default class HelloWorldCommand implements Command {
                         type: ApplicationCommandOptionType.Integer,
                         min_value: 1,
                         autocomplete: true,
-                    },
-                    {
-                        name: 'expiration',
-                        description: 'Unban the user automatically after a certain about of time (pass in a duration string)',
-                        type: ApplicationCommandOptionType.String,
                     }
                 ]
             }, 
             {
-                name: 'Ban User',
+                name: 'Kick User',
                 type: ApplicationCommandType.User,
                 dm_permission: false,
-                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.BanMembers).valueOf()),
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.KickMembers).valueOf()),
             }];
     }
 }

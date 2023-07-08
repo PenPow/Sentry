@@ -15,8 +15,14 @@ import { Job } from "bullmq";
 
 export const PunishmentLock = new AsyncLock();
 
-export async function getCaseId(guildId: Snowflake) {
-    return redis.incr(`p-id-${guildId}`);
+const RedisLock = new AsyncLock();
+export async function getCaseId(guildId: Snowflake): Promise<number> {
+    return new Promise((resolve, reject) => {
+        void RedisLock.acquire(`caseid-${guildId}`, async () => {
+            const id = await redis.incr(`p-id-${guildId}`);
+            resolve(id);
+        }).catch(reject);
+    });
 }
 
 export function convertActionToColor(action: CaseAction): number {
@@ -32,6 +38,7 @@ export function convertActionToColor(action: CaseAction): number {
     case "Untimeout":
         return 0x1e1e21;
     case "Unban":
+        return 0x8ac926;
     case "Ban":
         return 0xff595e;
     }
@@ -66,7 +73,10 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
     // Extend the length of the punishment if it already exists and update the data to match the new case
     // Else create a new job for it and then do it
     if(data.duration) {
-        let jobId = await redis.get(`punishment-jid-${data.userId}`);
+        const key = `punishment-jid-${data.action === "VMute" ? "VDeafen" : data.action}-${data.userId}`;
+
+        // scoped by action so its only repeated punishments of same type updated
+        let jobId = await redis.get(key);
         const job = jobId ? await Job.fromId(PunishmentScheduledTaskManager.queue, jobId) : null;
 
         if(job)  {
@@ -75,7 +85,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         }
         else jobId = (await PunishmentScheduledTaskManager.schedule(punishment, { delay: data.duration })).id!;
 
-        await redis.setex(`punishment-jid-${data.userId}`, data.duration / Time.Second, jobId!);
+        await redis.setex(key, data.duration / Time.Second, jobId!);
     }
 
     const moderator = (await guild.members.fetch(data.moderatorId)).user;
@@ -104,7 +114,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         } else if(data.action === "Timeout") {
             await guild.members.edit(data.userId, { communicationDisabledUntil: new Date(Date.now() + data.duration!), reason: data.reason });
         } else if(data.action === "Unban") {
-            await guild.bans.remove(data.userId, "Removing ban as part of softban");
+            await guild.bans.remove(data.userId, data.reason);
         } else if(data.action === "Untimeout") {
             await guild.members.edit(data.userId, { communicationDisabledUntil: null });
         } else if(data.action === "VDeafen") {
@@ -112,7 +122,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         } else if(data.action === "VMute") {
             await guild.members.edit(data.userId, { mute: true });
         }
-    } catch (_err) {} // TODO: add sentry tracking + log errors to user
+    } catch (_err) {}  // TODO: add sentry tracking + log errors to user
 
     return [punishment, embed];
 }

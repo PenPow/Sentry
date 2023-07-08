@@ -181,7 +181,7 @@ module.exports = {
 		'no-class-assign': 'warn',
 		'no-compare-neg-zero': 'error',
 		'no-cond-assign': 'warn',
-		'no-console': 'off',
+		'no-console': 'error',
 		'no-const-assign': 'error',
 		'no-constant-condition': 'off',
 		'no-control-regex': 'off',
