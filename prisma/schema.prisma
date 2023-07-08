@@ -12,7 +12,7 @@ datasource db {
 
 model Guild {
   id    String       @id @unique
-  cases Moderation[]
+  cases Punishment[]
 }
 
 enum CaseAction {
@@ -27,8 +27,8 @@ enum CaseAction {
   VDeafen
 }
 
-model Moderation {
-  id Int @id @unique @default(autoincrement())
+model Punishment {
+  id              Int          @id @unique @default(autoincrement())
   caseId          Int
   createdAt       DateTime     @default(now())
   duration        Int?
@@ -39,10 +39,11 @@ model Moderation {
   modLogMessageId String?
   action          CaseAction
   userId          String
-  referenceId Int?
-  caseReference   Moderation?  @relation("CaseReference", fields: [referenceId], references: [id])
-  references      Moderation[] @relation("CaseReference")
+  referenceId     Int?
+  caseReference   Punishment?  @relation("CaseReference", fields: [referenceId], references: [id])
+  references      Punishment[] @relation("CaseReference")
   userName        String /// Username at time of punishment
+  frozen          Boolean      @default(false)
 
   @@unique([guildId, caseId])
 }
