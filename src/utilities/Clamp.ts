@@ -1,5 +1,6 @@
 export function clamp<T extends unknown[]>(array: T, length: number): T {
-    array.length = Math.min(array.length, length);
+    const arr = [...array] as T;
+    arr.length = Math.min(arr.length, length);
   
-    return array;
+    return arr;
 }
