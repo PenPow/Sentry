@@ -296,7 +296,9 @@ module.exports = {
 		'no-useless-return': 'warn',
 		'no-var': 'error',
 		'no-void': 'off',
-		'no-warning-comments': 'off',
+		'no-warning-comments': ["warn", {
+			"terms": ["TODO", "FIXME", "HACK"],
+		}],
 		'no-with': 'error',
 		'node/no-missing-import': 'off',
 		'object-shorthand': ['error', 'always'],
