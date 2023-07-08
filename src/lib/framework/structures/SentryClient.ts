@@ -7,11 +7,9 @@ import { Listener } from "./Listener.js";
 import { loadEnv } from "../../../utilities/env.js";
 
 // TODO:
-// - Preconditions
 // - Paginator
 // - API Route Handler
 // - Localization Handler (https://cdn.penpow.dev/go/typesafe-translations)
-// - Scheduled Tasks
 export class SentryClient<Ready extends boolean = boolean> extends Client<Ready> {
     public constructor(options: ClientOptions) {
         super(options);
@@ -19,6 +17,7 @@ export class SentryClient<Ready extends boolean = boolean> extends Client<Ready>
         this.registries = {
             commands: new Collection(),
             listeners: new Collection(),
+            aliases: new Collection(),
         };
 
         // TODO: In the future when adding prom/grafana
@@ -56,8 +55,8 @@ export class SentryClient<Ready extends boolean = boolean> extends Client<Ready>
 
         this.logger.debug(`Registering ${commands.length} commands`);
 
-        await this.rest.put(Routes.applicationCommands(this.user!.id), { body: commands });
-        await this.rest.put(Routes.applicationGuildCommands(this.user!.id, this.environment.DEVELOPMENT_GUILD_ID), { body: guildCommands });
+        await this.rest.put(Routes.applicationCommands(this.user!.id), { body: [...new Set(commands)] });
+        await this.rest.put(Routes.applicationGuildCommands(this.user!.id, this.environment.DEVELOPMENT_GUILD_ID), { body: [...new Set(guildCommands)] });
     }
 
     private async loadCommands() {
@@ -67,8 +66,11 @@ export class SentryClient<Ready extends boolean = boolean> extends Client<Ready>
             // eslint-disable-next-line node/no-unsupported-features/es-syntax
             const command = new ((await import(this.absoluteToRelative(file))).default) as Command;
 
-            for(const cmd of command.toJSON()) {
-                this.registries.commands.set(cmd.name, command);
+            const json = command.toJSON();
+            this.registries.commands.set(json.shift()!.name, command);
+
+            for(const cmd of json) {
+                this.registries.aliases.set(cmd.name, command);
             }
         }
 
@@ -110,6 +112,7 @@ declare module 'discord.js' {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     export interface ClientEvents {
         commandError: [interaction: CommandInteraction, error: Error]
+        modalError: [interaction: ModalSubmitInteraction, error: Error]
         autocompleteError: [interaction: AutocompleteInteraction, error: Error]
         preconditionFailed: [interaction: CommandInteraction, result: PreconditionOption]
     

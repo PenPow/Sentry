@@ -3,11 +3,11 @@ import {
     ChatInputCommandInteraction, 
     CommandInteraction, 
     MessageContextMenuCommandInteraction, 
+    ModalSubmitInteraction, 
     RESTPostAPIApplicationCommandsJSONBody, 
     UserContextMenuCommandInteraction 
 } from "discord.js";
 
-import { Awaitable } from "../../types/Awaitable.js";
 import { Option } from "@sapphire/result";
 
 export type PreconditionOption = Option<{
@@ -20,10 +20,11 @@ export type Command = {
 
     dev?: boolean;
 
-    chatInputRun?(interaction: ChatInputCommandInteraction): Awaitable<unknown>
-    userContextMenuRun?(interaction: UserContextMenuCommandInteraction): Awaitable<unknown>
-    messageContextMenuRun?(interaction: MessageContextMenuCommandInteraction): Awaitable<unknown>
-    autocompleteRun?(interaction: AutocompleteInteraction): Awaitable<unknown>
+    chatInputRun?(interaction: ChatInputCommandInteraction): any
+    userContextMenuRun?(interaction: UserContextMenuCommandInteraction): any
+    messageContextMenuRun?(interaction: MessageContextMenuCommandInteraction): any
+    autocompleteRun?(interaction: AutocompleteInteraction): any
+    modalRun?(interaction: ModalSubmitInteraction): any
 
     toJSON(): RESTPostAPIApplicationCommandsJSONBody[]
 }

@@ -7,11 +7,11 @@ const schema = s.object({
     DEVELOPMENT_GUILD_ID: s.string.regex(/^(?<id>\d{17,20})$/)
 });
 
-export function loadEnv(logger: Logger<ILogObj>) {
+export function loadEnv(logger?: Logger<ILogObj>) {
     try {
         return schema.parse(process.env);
     } catch (err) {
-        logger.fatal(inspect(err, { colors: true }));
+        logger?.fatal(inspect(err, { colors: true }));
         
         process.exit(1);
     }

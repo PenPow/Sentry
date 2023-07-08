@@ -4,6 +4,7 @@ import { Listener } from "../framework/structures/Listener.js";
 
 type Registries = {
     commands: Command,
+    aliases: Command,
     listeners: Listener<keyof ClientEvents>
 }
 

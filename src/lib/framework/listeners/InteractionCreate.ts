@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, ClientEvents, CommandInteraction } from "discord.js";
+import { AutocompleteInteraction, ClientEvents, CommandInteraction, ModalSubmitInteraction } from "discord.js";
 import { Listener } from "../structures/Listener.js";
 import { Option } from '@sapphire/result';
 
@@ -9,6 +9,7 @@ export default class InteractionCreateListener implements Listener<"interactionC
     public async run([interaction]: ClientEvents["interactionCreate"]) {
         if(interaction.isAutocomplete()) await this.handleAutocomplete(interaction);
         if(interaction.isCommand()) await this.handleCommand(interaction);
+        if(interaction.isModalSubmit()) await this.handleModal(interaction);
     }
 
     private handleAutocomplete(interaction: AutocompleteInteraction) {
@@ -22,14 +23,26 @@ export default class InteractionCreateListener implements Listener<"interactionC
 
         return command.autocompleteRun(interaction);
     }
-    
-    private async handleCommand(interaction: CommandInteraction) {
-        const { commandName } = interaction;
+
+    private handleModal(interaction: ModalSubmitInteraction) {
+        const commandName = interaction.customId.split('.')[0]!;
 
         const command = interaction.client.registries.commands.get(commandName);
         if(!command) return;
 
+        if(!command.modalRun) return interaction.client.emit("modalError", interaction, new Error(`${commandName} has no modal run function`));
+
+        return command.modalRun(interaction);
+    }
+    
+    private async handleCommand(interaction: CommandInteraction) {
+        const { commandName } = interaction;
+
+        const command = interaction.client.registries[interaction.isChatInputCommand() ? "commands" : "aliases"].get(commandName);
+        if(!command) return;
+
         const preconditionResult = command.shouldRun?.(interaction) ?? Option.none;
+        // TODO: Add preconditionFailed listener
         if(preconditionResult.isSome()) return interaction.client.emit("preconditionFailed", interaction, preconditionResult);
 
         try {
@@ -51,7 +64,7 @@ export default class InteractionCreateListener implements Listener<"interactionC
             return;
         }
         catch (err) {
-            return interaction.client.emit("commandError", interaction, err as Error);
+            return interaction.client.emit("commandError", interaction, err as Error); // TODO: Add command error listener
         }
     }
 }
