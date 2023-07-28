@@ -1,115 +1,146 @@
-import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
-import { ApplyOptions } from "@sapphire/decorators";
-import {
-  ActionRowBuilder,
-  ApplicationCommandType,
-  ModalBuilder,
-  PermissionFlagsBits,
-  PermissionsBitField,
-  TextInputBuilder,
-  TextInputStyle,
+import { 
+    ActionRowBuilder,
+    ApplicationCommandOptionType, 
+    ApplicationCommandType, 
+    AutocompleteInteraction,
+    CacheType, 
+    ChatInputCommandInteraction, 
+    CommandInteraction, 
+    ModalBuilder, 
+    ModalSubmitInteraction, 
+    PermissionsBitField, 
+    RESTPostAPIApplicationCommandsJSONBody, 
+    TextInputBuilder, 
+    TextInputStyle, 
+    UserContextMenuCommandInteraction
 } from "discord.js";
-import { Duration } from "@sapphire/time-utilities";
-import { CaseAction } from "@prisma/client";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { PermissionsValidator } from "../../utilities/Permissions.js";
+import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
+import { Option } from "@sapphire/result";
+import { PunishmentLock, createCase } from "../../utilities/Punishments.js";
+import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { createTimedPunishment } from "../../functions/createTimedPunishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
-@ApplyOptions<Command.Options>({
-  description: "Warn a user",
-  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
-})
-export class WarnCommand extends Command {
-  public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.ModerateMembers]).valueOf())
-        .addUserOption((option) => option.setName("user").setDescription("The user to add the warn to").setRequired(true))
-        .addStringOption((option) =>
-          option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
-        )
-        .addBooleanOption((option) =>
-          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("reference")
-            .setDescription("Add a case to reference this punishment with")
-            .setMinValue(1)
-            .setRequired(false)
-            .setAutocomplete(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("expiration")
-            .setDescription("Remove the warning after a given amount of time (pass in a duration string)")
-            .setRequired(false)
-        )
-    );
+export default class WarnCommand implements Command {
+    public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
+        
+        const { member, guild } = interaction;
 
-    registry.registerContextMenuCommand((builder) =>
-      builder
-        .setName("Warn User")
-        .setType(ApplicationCommandType.User)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.ModerateMembers]).valueOf())
-    );
-  }
-
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    const dm = interaction.options.getBoolean("dm", false) ?? false;
-    let reference = interaction.options.getInteger("reference", false);
-
-    const expirationOption = interaction.options.getString("expiration", false);
-    const expiration = expirationOption ? new Duration(expirationOption) : null;
-
-    if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
-
-      if (referencedCase) reference = referencedCase.id;
-      else reference = null;
+        const target = interaction.isUserContextMenuCommand() 
+            ? interaction.targetMember 
+            : interaction.options.getMember("user") ?? interaction.options.getUser("user", true);
+        
+        return permissionsV1(member, target, guild);
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(
-      interaction.guild,
-      {
-        reason,
-        guildId: interaction.guildId,
-        duration: Number.isNaN(expiration?.offset) ? null : expiration ? expiration.offset : null,
-        moderatorId: interaction.user.id,
-        action: "Warn",
-        userId: user.id,
-        userName: user.username,
-        referenceId: reference,
-      },
-      dm
-    );
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        return createTimedPunishment(interaction, "Warn");
+    }
 
-    const [_caseData, embed] = modCase.expect("Expected case data");
+    public async userContextMenuRun(interaction: UserContextMenuCommandInteraction<"cached">) {
+        const user = interaction.targetUser;
 
-    return interaction.reply({ embeds: [embed] });
-  }
+        const modal = new ModalBuilder()
+            .setCustomId(`warn.${user.id}-${user.username}`)
+            .setTitle("Create New Warning")
+            .addComponents(
+                new ActionRowBuilder<TextInputBuilder>().addComponents(
+                    new TextInputBuilder()
+                        .setCustomId("reason")
+                        .setLabel("Reason")
+                        .setMaxLength(500)
+                        .setPlaceholder("They ...")
+                        .setRequired(true)
+                        .setStyle(TextInputStyle.Short)
+                )
+            );
+    
+        await interaction.showModal(modal);
+    }
 
-  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
-    if (!interaction.isUserContextMenuCommand()) return;
+    public async modalRun(interaction: ModalSubmitInteraction<"cached">) {
+        const [userId, username] = interaction.customId.split('.')[1]!.split('-') as [string, string];
 
-    const user = interaction.targetUser;
+        await interaction.deferReply();
 
-    const modal = new ModalBuilder()
-      .setCustomId(`mod-${CaseAction.Warn}.${user.id}-${user.username}`)
-      .setTitle("Create New Warning")
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId("reason")
-            .setLabel("Warning Reason")
-            .setMaxLength(500)
-            .setPlaceholder("They ...")
-            .setRequired(true)
-            .setStyle(TextInputStyle.Short)
-        )
-      );
+        await PunishmentLock.acquire(`punishment-${userId}`, async () => {
+            const [, embed] = await createCase(interaction.guild, {
+                guildId: interaction.guildId,
+                reason: interaction.fields.getTextInputValue("reason"),
+                duration: null,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.username,
+                moderatorIconUrl: interaction.user.displayAvatarURL(),
+                action: "Warn",
+                userId,
+                userName: username,
+                referenceId: null
+            }, { dm: true, dry: false });
 
-    await interaction.showModal(modal);
-  }
+            await interaction.editReply({ embeds: [embed ]});
+        });
+    }
+
+    public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
+        const option = interaction.options.getFocused(true);
+
+        if(option.name === "reason") {
+            return interaction.respond(reasonAutocompleteHandler(option));
+        } else if (option.name === "reference") {
+            return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        }
+    }
+
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
+        return [
+            {
+                name: 'warn',
+                description: 'Warn a user in your server',
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.BanMembers).valueOf()),
+                options: [
+                    {
+                        name: 'user',
+                        description: 'The user to warn',
+                        type: ApplicationCommandOptionType.User,
+                        required: true,
+                    },
+                    {
+                        name: 'reason',
+                        description: 'The reason for adding this punishment',
+                        type: ApplicationCommandOptionType.String,
+                        max_length: 500,
+                        autocomplete: true,
+                        required: true,
+                    },
+                    {
+                        name: 'dm',
+                        description: 'Message the user with details of their punishment',
+                        type: ApplicationCommandOptionType.Boolean,
+                    },
+                    {
+                        name: 'reference',
+                        description: 'Reference another case in this punishment',
+                        type: ApplicationCommandOptionType.Integer,
+                        min_value: 1,
+                        autocomplete: true,
+                    },
+                    {
+                        name: 'expiration',
+                        description: 'Remove this warning after a certain about of time (pass in a duration string)',
+                        type: ApplicationCommandOptionType.String,
+                    }
+                ]
+            }, 
+            {
+                name: 'Warn User',
+                type: ApplicationCommandType.User,
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.ModerateMembers).valueOf()),
+            }];
+    }
 }

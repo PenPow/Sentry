@@ -1,78 +1,89 @@
-import { ApplicationCommandRegistry, Command, UserError } from "@sapphire/framework";
-import { ApplyOptions } from "@sapphire/decorators";
-import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
-import { Duration, Time } from "@sapphire/time-utilities";
+import {
+    ApplicationCommandOptionType, 
+    AutocompleteInteraction,
+    CacheType, 
+    ChatInputCommandInteraction, 
+    CommandInteraction, 
+    PermissionsBitField, 
+    RESTPostAPIApplicationCommandsJSONBody, 
+} from "discord.js";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { PermissionsValidator } from "../../utilities/Permissions.js";
+import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
+import { Option } from "@sapphire/result";
+import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { createTimedPunishment } from "../../functions/createTimedPunishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
-@ApplyOptions<Command.Options>({
-  description: "Timeout a user",
-  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
-})
-export class TimeoutCommand extends Command {
-  public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.ModerateMembers]).valueOf())
-        .addUserOption((option) => option.setName("user").setDescription("The user to timeout").setRequired(true))
-        .addStringOption((option) =>
-          option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("expiration")
-            .setDescription("How long should the timeout be for - up to a maximum of 28d (pass in a duration string)")
-            .setRequired(true)
-        )
-        .addBooleanOption((option) =>
-          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("reference")
-            .setDescription("Add a case to reference this punishment with")
-            .setMinValue(1)
-            .setRequired(false)
-            .setAutocomplete(true)
-        )
-    );
-  }
+export default class TimeoutCommand implements Command {
+    public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
+        
+        const { member, guild } = interaction;
 
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    const dm = interaction.options.getBoolean("dm", false) ?? false;
-    let reference = interaction.options.getInteger("reference", false);
-
-    const expiration = new Duration(interaction.options.getString("expiration", true));
-    if (Number.isNaN(expiration.offset) || expiration.offset / Time.Day > 28) {
-      throw new UserError({ identifier: "InvalidArguments", message: "Invalid Expiration" });
+        const target = interaction.isUserContextMenuCommand() 
+            ? interaction.targetMember 
+            : interaction.options.getMember("user") ?? interaction.options.getUser("user", true);
+        
+        return permissionsV1(member, target, guild);
     }
 
-    if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
-
-      if (referencedCase) reference = referencedCase.id;
-      else reference = null;
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        return createTimedPunishment(interaction, "Timeout");
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(
-      interaction.guild,
-      {
-        reason,
-        guildId: interaction.guildId,
-        duration: expiration.offset,
-        moderatorId: interaction.user.id,
-        action: "Timeout",
-        userId: user.id,
-        userName: user.username,
-        referenceId: reference,
-      },
-      dm
-    );
+    public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
+        const option = interaction.options.getFocused(true);
 
-    const [_caseData, embed] = modCase.expect("Expected case data");
+        if(option.name === "reason") {
+            return interaction.respond(reasonAutocompleteHandler(option));
+        } else if (option.name === "reference") {
+            return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        }
+    }
 
-    return interaction.reply({ embeds: [embed] });
-  }
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
+        return [
+            {
+                name: 'timeout',
+                description: 'Timeout a user in your server',
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.ModerateMembers).valueOf()),
+                options: [
+                    {
+                        name: 'user',
+                        description: 'The user to timeout',
+                        type: ApplicationCommandOptionType.User,
+                        required: true,
+                    },
+                    {
+                        name: 'reason',
+                        description: 'The reason for adding this punishment',
+                        type: ApplicationCommandOptionType.String,
+                        max_length: 500,
+                        autocomplete: true,
+                        required: true,
+                    },
+                    {
+                        name: 'expiration',
+                        description: 'How long the timeout should last, up to 28 days (pass in a duration string)',
+                        type: ApplicationCommandOptionType.String,
+                        required: true,
+                    },
+                    {
+                        name: 'dm',
+                        description: 'Message the user with details of their punishment',
+                        type: ApplicationCommandOptionType.Boolean,
+                    },
+                    {
+                        name: 'reference',
+                        description: 'Reference another case in this punishment',
+                        type: ApplicationCommandOptionType.Integer,
+                        min_value: 1,
+                        autocomplete: true,
+                    }
+                ]
+            }];
+    }
 }

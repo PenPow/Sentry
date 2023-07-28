@@ -1,114 +1,99 @@
-import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
-import { ApplyOptions } from "@sapphire/decorators";
-import {
-  APIEmbed,
-  ApplicationCommandType,
-  EmbedBuilder,
-  PermissionFlagsBits,
-  PermissionsBitField,
-  UserContextMenuCommandInteraction,
+import { 
+    APIEmbed,
+    ApplicationCommandOptionType, 
+    ApplicationCommandType, 
+    CacheType, 
+    ChatInputCommandInteraction, 
+    CommandInteraction, 
+    EmbedBuilder, 
+    RESTPostAPIApplicationCommandsJSONBody, 
+    Snowflake, 
+    UserContextMenuCommandInteraction
 } from "discord.js";
-import { Moderation } from "@prisma/client";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { Option } from "@sapphire/result";
+import { prisma } from "../../utilities/Prisma.js";
 import { PaginatedMessage } from "@sapphire/discord.js-utilities";
-import { clamp } from "../../functions/Clamp.js";
+import { clamp } from "../../utilities/Clamp.js";
+import { createEmbed } from "../../utilities/Logging.js";
+import { UserLike } from "../../types/Punishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
-@ApplyOptions<Command.Options>({
-  description: "Fetch a user's moderation history",
-  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
-})
-export class HistoryCommand extends Command {
-  public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.ModerateMembers]).valueOf())
-        .addUserOption((option) => option.setName("user").setDescription("The user to fetch the history of").setRequired(true))
-    );
-
-    registry.registerContextMenuCommand((builder) =>
-      builder
-        .setName("Fetch History")
-        .setType(ApplicationCommandType.User)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.ModerateMembers]).valueOf())
-    );
-  }
-
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-
-    const guild = await this.container.prisma.guild.findUnique({
-      where: { id: interaction.guildId },
-      include: { cases: { where: { userId: user.id }, include: { caseReference: true } } },
-    });
-
-    if (!guild) {
-      const embed: APIEmbed = {
-        title: "No Moderation History",
-        color: 0x86b53a,
-      };
-
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+export default class HistoryCommand implements Command {
+    public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
+        
+        return Option.none;
     }
 
-    return this.sharedRun(interaction, guild.cases);
-  }
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        const user = interaction.options.getUser("user", true);
 
-  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
-    if (!interaction.isUserContextMenuCommand()) return;
-
-    const user = interaction.targetUser;
-
-    const guild = await this.container.prisma.guild.findUnique({
-      where: { id: interaction.guildId },
-      include: { cases: { where: { userId: user.id }, include: { caseReference: true } } },
-    });
-
-    if (!guild) {
-      const embed: APIEmbed = {
-        title: "No Moderation History",
-        color: 0x86b53a,
-      };
-
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+        return this.sharedRun(interaction, user.id);
     }
 
-    return this.sharedRun(interaction, guild.cases);
-  }
+    public async userContextMenuRun(interaction: UserContextMenuCommandInteraction<"cached">) {
+        const user = interaction.targetUser;
 
-  private async sharedRun(
-    interaction: Command.ChatInputCommandInteraction<"cached"> | UserContextMenuCommandInteraction<"cached">,
-    cases: (Moderation & {
-      caseReference: Moderation | null;
-    })[]
-  ): Promise<void> {
-    const message = new PaginatedMessage();
-
-    const { length } = cases;
-
-    for (const modCase of clamp(cases, 24)) {
-      message.addPageEmbed(
-        new EmbedBuilder(
-          await this.container.utilities.moderation.createCaseEmbed(
-            interaction.guild,
-            await interaction.client.users.fetch(modCase.moderatorId),
-            modCase
-          )
-        )
-      );
+        return this.sharedRun(interaction, user.id);
     }
 
-    if (length >= 25) {
-      message.addPageEmbed(
-        new EmbedBuilder({
-          title: `And ${length - 25} more case${length - 25 === 1 ? "" : "s"}...`,
-          color: 0xea6e72,
-        })
-      );
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
+        return [
+            {
+                name: 'history',
+                description: 'Get a user\'s moderation history',
+                dm_permission: false,
+                options: [
+                    {
+                        name: 'user',
+                        description: 'The user to fetch the history of',
+                        type: ApplicationCommandOptionType.User,
+                        required: true,
+                    }
+                ]
+            }, 
+            {
+                name: 'Get User History',
+                type: ApplicationCommandType.User,
+                dm_permission: false,
+            }];
     }
 
-    await interaction.deferReply({ ephemeral: true }); // make ephemeral
+    private async sharedRun(interaction: ChatInputCommandInteraction<"cached"> | UserContextMenuCommandInteraction<"cached">, userId: Snowflake) {
+        const guild = await prisma.guild.findUnique({
+            where: { id: interaction.guildId },
+            include: { cases: { where: { userId }, include: { caseReference: true } } },
+        });
+      
+        if (!guild) {
+            const embed: APIEmbed = {
+                title: "No Moderation History",
+                color: 0x86b53a,
+            };
+      
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
 
-    await message.run(interaction, interaction.user);
-  }
+        const message = new PaginatedMessage();
+
+        for(const modCase of clamp(guild.cases, 24)) {
+            const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
+
+            message.addPageEmbed(new EmbedBuilder(await createEmbed(interaction.guild, moderator, modCase )));
+        }
+
+        if (guild.cases.length >= 25) {
+            message.addPageEmbed(
+                new EmbedBuilder({
+                    title: `And ${guild.cases.length - 25} more case${guild.cases.length - 25 === 1 ? "" : "s"}...`,
+                    color: 0xea6e72,
+                })
+            );
+        }
+
+        await interaction.deferReply({ ephemeral: true }); // makes paginator ephemeral
+
+        return message.run(interaction, interaction.user);
+    }
 }

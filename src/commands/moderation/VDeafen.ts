@@ -1,76 +1,88 @@
-import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
-import { ApplyOptions } from "@sapphire/decorators";
-import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
-import { Duration } from "@sapphire/time-utilities";
+import {
+    ApplicationCommandOptionType, 
+    AutocompleteInteraction,
+    CacheType, 
+    ChatInputCommandInteraction, 
+    CommandInteraction, 
+    PermissionsBitField, 
+    RESTPostAPIApplicationCommandsJSONBody, 
+} from "discord.js";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { PermissionsValidator } from "../../utilities/Permissions.js";
+import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
+import { Option } from "@sapphire/result";
+import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { createTimedPunishment } from "../../functions/createTimedPunishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
-@ApplyOptions<Command.Options>({
-  description: "Voice-deafen a user",
-  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
-})
-export class VDeafenCommand extends Command {
-  public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.ModerateMembers]).valueOf())
-        .addUserOption((option) => option.setName("user").setDescription("The user to voice deafen").setRequired(true))
-        .addStringOption((option) =>
-          option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
-        )
-        .addBooleanOption((option) =>
-          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("reference")
-            .setDescription("Add a case to reference this punishment with")
-            .setMinValue(1)
-            .setRequired(false)
-            .setAutocomplete(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("expiration")
-            .setDescription("Remove the voice deafen after a given amount of time (pass in a duration string)")
-            .setRequired(false)
-        )
-    );
-  }
+export default class VoiceDeafenCommand implements Command {
+    public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
+        
+        const { member, guild } = interaction;
 
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    const dm = interaction.options.getBoolean("dm", false) ?? false;
-    let reference = interaction.options.getInteger("reference", false);
-
-    const expirationOption = interaction.options.getString("expiration", false);
-    const expiration = expirationOption ? new Duration(expirationOption) : null;
-
-    if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
-
-      if (referencedCase) reference = referencedCase.id;
-      else reference = null;
+        const target = interaction.isUserContextMenuCommand() 
+            ? interaction.targetMember 
+            : interaction.options.getMember("user") ?? interaction.options.getUser("user", true);
+        
+        return permissionsV1(member, target, guild);
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(
-      interaction.guild,
-      {
-        reason,
-        guildId: interaction.guildId,
-        duration: Number.isNaN(expiration?.offset) ? null : expiration ? expiration.offset : null,
-        moderatorId: interaction.user.id,
-        action: "VDeafen",
-        userId: user.id,
-        userName: user.username,
-        referenceId: reference,
-      },
-      dm
-    );
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        return createTimedPunishment(interaction, "VDeafen");
+    }
 
-    const [_caseData, embed] = modCase.expect("Expected case data");
+    public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
+        const option = interaction.options.getFocused(true);
 
-    return interaction.reply({ embeds: [embed] });
-  }
+        if(option.name === "reason") {
+            return interaction.respond(reasonAutocompleteHandler(option));
+        } else if (option.name === "reference") {
+            return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        }
+    }
+
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
+        return [
+            {
+                name: 'vdeafen',
+                description: 'Deafen a user in voice channels',
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.ModerateMembers).valueOf()),
+                options: [
+                    {
+                        name: 'user',
+                        description: 'The user to deafen',
+                        type: ApplicationCommandOptionType.User,
+                        required: true,
+                    },
+                    {
+                        name: 'reason',
+                        description: 'The reason to attach to this punishment',
+                        type: ApplicationCommandOptionType.String,
+                        max_length: 500,
+                        autocomplete: true,
+                        required: true,
+                    },
+                    {
+                        name: 'dm',
+                        description: 'Message the user with details of their punishment',
+                        type: ApplicationCommandOptionType.Boolean,
+                    },
+                    {
+                        name: 'reference',
+                        description: 'Reference another case in this punishment',
+                        type: ApplicationCommandOptionType.Integer,
+                        min_value: 1,
+                        autocomplete: true,
+                    },
+                    {
+                        name: 'expiration',
+                        description: 'Undeafen the user automatically after a certain about of time (pass in a duration string)',
+                        type: ApplicationCommandOptionType.String,
+                    }
+                ]
+            }];
+    }
 }
