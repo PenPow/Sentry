@@ -1,6 +1,7 @@
 import { AutocompleteInteraction, ClientEvents, CommandInteraction, ModalSubmitInteraction } from "discord.js";
 import { Listener } from "../structures/Listener.js";
 import { Option } from '@sapphire/result';
+import { InternalError } from "../structures/errors/InternalError.js";
 
 export default class InteractionCreateListener implements Listener<"interactionCreate"> {
     public readonly event = "interactionCreate";
@@ -19,9 +20,13 @@ export default class InteractionCreateListener implements Listener<"interactionC
         if(!command) return;
 
         // eslint-disable-next-line max-len
-        if(!command.autocompleteRun) return interaction.client.emit("autocompleteError", interaction, new Error(`${commandName} has no autocomplete run function`));
+        if(!command.autocompleteRun) return interaction.client.emit("autocompleteError", interaction, new InternalError(`${commandName} has no autocomplete run function`));
 
-        return command.autocompleteRun(interaction);
+        try {
+            return command.autocompleteRun(interaction);
+        } catch(err) {
+            return interaction.client.emit("autocompleteError", interaction, err as Error); // TODO: Add autocompleteError listener
+        }
     }
 
     private handleModal(interaction: ModalSubmitInteraction) {
@@ -30,9 +35,13 @@ export default class InteractionCreateListener implements Listener<"interactionC
         const command = interaction.client.registries.commands.get(commandName);
         if(!command) return;
 
-        if(!command.modalRun) return interaction.client.emit("modalError", interaction, new Error(`${commandName} has no modal run function`));
+        if(!command.modalRun) return interaction.client.emit("modalError", interaction, new InternalError(`${commandName} has no modal run function`));
 
-        return command.modalRun(interaction);
+        try {
+            return command.modalRun(interaction);
+        } catch(err) {
+            return interaction.client.emit("modalError", interaction, err as Error); // TODO: Add modalError listener
+        }
     }
     
     private async handleCommand(interaction: CommandInteraction) {
@@ -43,19 +52,20 @@ export default class InteractionCreateListener implements Listener<"interactionC
 
         const preconditionResult = command.shouldRun?.(interaction) ?? Option.none;
         // TODO: Add preconditionFailed listener
-        if(preconditionResult.isSome()) return interaction.client.emit("preconditionFailed", interaction, preconditionResult);
+        if(preconditionResult.isSome()) return interaction.client.emit("preconditionFailed", interaction, preconditionResult.unwrap());
 
         try {
             if(interaction.isChatInputCommand()) {
-                if(!command.chatInputRun) throw new Error(`${commandName} is a chat input command, but no run method is defined for it`);
+                if(!command.chatInputRun) throw new InternalError(`${commandName} is a chat input command, but no run method is defined for it`);
 
                 await command.chatInputRun(interaction);
             } else if(interaction.isUserContextMenuCommand()) {
-                if(!command.userContextMenuRun) throw new Error(`${commandName} is a user context menu command, but no run method is defined for it`);
+                if(!command.userContextMenuRun) throw new InternalError(`${commandName} is a user context menu command, but no run method is defined for it`);
 
                 await command.userContextMenuRun(interaction);
             } else if(interaction.isMessageContextMenuCommand()) {
-                if(!command.messageContextMenuRun) throw new Error(`${commandName} is a message context menu command, but no run method is defined for it`);
+                // eslint-disable-next-line max-len
+                if(!command.messageContextMenuRun) throw new InternalError(`${commandName} is a message context menu command, but no run method is defined for it`);
 
                 await command.messageContextMenuRun(interaction);
             }

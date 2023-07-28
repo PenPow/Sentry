@@ -1,4 +1,5 @@
 import { JobsOptions, Queue, Worker } from "bullmq";
+import { InternalError } from "./errors/InternalError.js";
 
 export abstract class ScheduledTaskManager<Data, TaskName extends string> {
     public queue: Queue<Data, void, TaskName>;
@@ -19,6 +20,6 @@ export abstract class ScheduledTaskManager<Data, TaskName extends string> {
     }
 
     protected run(_payload: Data): Promise<void> {
-        throw new Error("stub");
+        throw new InternalError("stub");
     }
 }

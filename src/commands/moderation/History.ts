@@ -17,10 +17,11 @@ import { PaginatedMessage } from "@sapphire/discord.js-utilities";
 import { clamp } from "../../utilities/Clamp.js";
 import { createEmbed } from "../../utilities/Logging.js";
 import { UserLike } from "../../types/Punishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class HistoryCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
-        if(!interaction.inCachedGuild()) return Option.some({ message: 'Not in guild', context: "You must be in a guild to run this command" });
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
         
         return Option.none;
     }

@@ -14,10 +14,11 @@ import { Option } from "@sapphire/result";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
 import { createTimedPunishment } from "../../functions/createTimedPunishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class VoiceMuteCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
-        if(!interaction.inCachedGuild()) return Option.some({ message: 'Not in guild', context: "You must be in a guild to run this command" });
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
         
         const { member, guild } = interaction;
 

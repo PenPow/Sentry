@@ -5,9 +5,9 @@ import { Command, PreconditionOption } from "./Command.js";
 import { WrappedRegistry } from "../../types/ClientTypes.js";
 import { Listener } from "./Listener.js";
 import { loadEnv } from "../../../utilities/env.js";
+import { Option } from "@sapphire/result";
 
 // TODO:
-// - Paginator
 // - API Route Handler
 // - Localization Handler (https://cdn.penpow.dev/go/typesafe-translations)
 export class SentryClient<Ready extends boolean = boolean> extends Client<Ready> {
@@ -114,7 +114,7 @@ declare module 'discord.js' {
         commandError: [interaction: CommandInteraction, error: Error]
         modalError: [interaction: ModalSubmitInteraction, error: Error]
         autocompleteError: [interaction: AutocompleteInteraction, error: Error]
-        preconditionFailed: [interaction: CommandInteraction, result: PreconditionOption]
+        preconditionFailed: [interaction: CommandInteraction, result: Option.UnwrapSome<PreconditionOption>]
     
         // eslint-disable-next-line no-warning-comments
         raw: [...data: any] // HACK: Stub

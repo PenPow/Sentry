@@ -11,7 +11,6 @@ import {
 import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
 import { PermissionsValidator } from "../../utilities/Permissions.js";
 import { Option } from "@sapphire/result";
-// import { PunishmentLock, createCase } from "../../utilities/Punishments.js";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { prisma } from "../../utilities/Prisma.js";
 import { createEmbed, postModLogMessage } from "../../utilities/Logging.js";
@@ -22,10 +21,14 @@ import { PunishmentScheduledTaskManager } from "../../tasks/PunishmentExpiration
 import { Job } from "bullmq";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
 import { UserLike } from "../../types/Punishment.js";
+import { InternalError } from "../../lib/framework/structures/errors/InternalError.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
+
+// ^ god these imports are a mess
 
 export default class CaseCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
-        if(!interaction.inCachedGuild()) return Option.some({ message: 'Not in guild', context: "You must be in a guild to run this command" });
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
 
         return Option.none;
     }
@@ -41,7 +44,7 @@ export default class CaseCommand implements Command {
             return this.freezeCase(interaction);
         }
 
-        return new Error("Unexpected subcommand (group) type"); // please the typescript overlords
+        throw new InternalError("Unexpected subcommand (group) type"); // please the typescript overlords
     }
 
     public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
@@ -260,7 +263,7 @@ export default class CaseCommand implements Command {
             });
         }
 
-        return new Error("Unexpected subcommand type"); // please the typescript overlords
+        throw new InternalError("Unexpected subcommand type"); // please the typescript overlords
     }
 
     private async freezeCase(interaction: ChatInputCommandInteraction<"cached">) {
