@@ -1,7 +1,3 @@
-// import { APIEmbed, Guild } from "discord.js";
-// import { prisma } from "./Prisma.js";
-// import { Case, CaseWithReference } from "../types/Punishment.js";
-
 import AsyncLock from "async-lock";
 import { APIEmbed, ActionRowBuilder, ButtonBuilder, ButtonStyle, Guild, Snowflake } from "discord.js";
 import { Case, CaseWithReference } from "../types/Punishment.js";
@@ -16,7 +12,7 @@ import { Job } from "bullmq";
 export const PunishmentLock = new AsyncLock();
 
 const RedisLock = new AsyncLock();
-export async function getCaseId(guildId: Snowflake): Promise<number> {
+export function getCaseId(guildId: Snowflake): Promise<number> {
     return new Promise((resolve, reject) => {
         void RedisLock.acquire(`caseid-${guildId}`, async () => {
             const id = await redis.incr(`p-id-${guildId}`);
@@ -64,11 +60,13 @@ export function prettifyCaseActionName(action: CaseAction) {
 export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: true, dry: false }): Promise<[CaseWithReference, APIEmbed]> {
     await prisma.guild.upsert({ create: { id: guild.id }, update: {}, where: { id: guild.id } });
 
+    const cid = await getCaseId(guild.id);
+
     const punishment = await prisma.punishment.create({ 
         data: { 
             ...data,
-            duration: data.duration ? data.duration / Time.Second : null,
-            caseId: await getCaseId(guild.id) 
+            duration: data.duration ? Math.ceil(data.duration / Time.Second) : null,
+            caseId: cid
         },
         include: {
             caseReference: true
@@ -91,11 +89,9 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         }
         else jobId = (await PunishmentScheduledTaskManager.schedule(punishment, { delay: data.duration })).id!;
 
-        await redis.setex(key, data.duration / Time.Second, jobId!);
+        await redis.setex(key, Math.ceil(data.duration / Time.Second), jobId!);
     }
-
-    const moderator = (await guild.members.fetch(data.moderatorId)).user;
-    const embed = await postModLogMessage(guild, moderator, punishment);
+    const embed = await postModLogMessage(guild, { iconUrl: data.moderatorIconUrl, username: data.moderatorName, id: data.moderatorId }, punishment);
 
     if(dry) return [punishment, embed]; // Dry exits before executing moderation action
 
