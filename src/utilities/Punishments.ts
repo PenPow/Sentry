@@ -8,6 +8,8 @@ import { PunishmentScheduledTaskManager } from "../tasks/PunishmentExpiration.js
 import { CaseAction } from "@prisma/client";
 import { postModLogMessage } from "./Logging.js";
 import { Job } from "bullmq";
+import * as Sentry from "@sentry/node";
+import { createErrorEmbed } from "../functions/createErrorEmbed.js";
 
 export const PunishmentLock = new AsyncLock();
 
@@ -103,7 +105,10 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
 
             await guild.client.users.send(data.userId, { embeds: [embed], components: [row] });
         }
-    } catch(_err) {}  // TODO: add sentry tracking + log errors to user
+    } catch(error) {
+        Sentry.captureException(error);
+        return [punishment, createErrorEmbed(error as Error)];
+    }
 
     try {
         if(data.action === "Ban") {
@@ -124,7 +129,10 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         } else if(data.action === "VMute") {
             await guild.members.edit(data.userId, { mute: true });
         }
-    } catch (_err) {}  // TODO: add sentry tracking + log errors to user
+    } catch(error) {
+        Sentry.captureException(error);
+        return [punishment, createErrorEmbed(error as Error)];
+    }
 
     return [punishment, embed];
 }

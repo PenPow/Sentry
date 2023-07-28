@@ -3,6 +3,7 @@ import { APIEmbed, APIEmbedAuthor, ChannelType, Guild, TimestampStyles, hyperlin
 import { CaseWithReference, UserLike } from "../types/Punishment.js";
 import { prettifyCaseActionName, convertActionToColor } from "./Punishments.js";
 import { prisma } from "./Prisma.js";
+import * as Sentry from "@sentry/node";
 
 async function getGuildLogChannel(guild: Guild) {
     const channels = await guild.channels.fetch();
@@ -60,7 +61,7 @@ export async function createEmbed(guild: Guild, moderator: UserLike, data: CaseW
 }
 
 export async function postModLogMessage(guild: Guild, moderator: UserLike, data: CaseWithReference): Promise<APIEmbed> {
-    const embed = createEmbed(guild, moderator, data);
+    const embed = await createEmbed(guild, moderator, data);
 
     const channel = await getGuildLogChannel(guild);
     if(!channel) return embed; // Early return so the embed can be used in the interaction reply
@@ -69,19 +70,21 @@ export async function postModLogMessage(guild: Guild, moderator: UserLike, data:
         const message = await channel.messages.fetch(data.modLogMessageId);
   
         if (message) {
-            await message.edit({ embeds: [await embed] });
+            await message.edit({ embeds: [embed] });
   
             return embed;
         }
     }
 
     try {
-        const message = await channel.send({ embeds: [await embed] });
+        const message = await channel.send({ embeds: [embed] });
   
         await prisma.punishment.update({ where: { id: data.id }, data: { modLogMessageId: message.id } });
   
         return embed;
-    } catch (error) { // TODO: Add sentry integration
+    } catch (error) {
+        Sentry.captureException(error);
+
         return embed;
     }
 }

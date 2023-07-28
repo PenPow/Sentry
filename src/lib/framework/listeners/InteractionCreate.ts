@@ -25,7 +25,7 @@ export default class InteractionCreateListener implements Listener<"interactionC
         try {
             return command.autocompleteRun(interaction);
         } catch(err) {
-            return interaction.client.emit("autocompleteError", interaction, err as Error); // TODO: Add autocompleteError listener
+            return interaction.client.emit("autocompleteError", interaction, err as Error);
         }
     }
 
@@ -40,7 +40,7 @@ export default class InteractionCreateListener implements Listener<"interactionC
         try {
             return command.modalRun(interaction);
         } catch(err) {
-            return interaction.client.emit("modalError", interaction, err as Error); // TODO: Add modalError listener
+            return interaction.client.emit("modalError", interaction, err as Error);
         }
     }
     
@@ -51,7 +51,6 @@ export default class InteractionCreateListener implements Listener<"interactionC
         if(!command) return;
 
         const preconditionResult = command.shouldRun?.(interaction) ?? Option.none;
-        // TODO: Add preconditionFailed listener
         if(preconditionResult.isSome()) return interaction.client.emit("preconditionFailed", interaction, preconditionResult.unwrap());
 
         try {
@@ -74,7 +73,7 @@ export default class InteractionCreateListener implements Listener<"interactionC
             return;
         }
         catch (err) {
-            return interaction.client.emit("commandError", interaction, err as Error); // TODO: Add command error listener
+            return interaction.client.emit("commandError", interaction, err as Error);
         }
     }
 }
