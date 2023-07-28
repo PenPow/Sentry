@@ -21,6 +21,7 @@ import { redis } from "../../utilities/Redis.js";
 import { PunishmentScheduledTaskManager } from "../../tasks/PunishmentExpiration.js";
 import { Job } from "bullmq";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { UserLike } from "../../types/Punishment.js";
 
 export default class CaseCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
@@ -155,7 +156,7 @@ export default class CaseCommand implements Command {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
-        const moderator = { username: modCase.moderatorName, id: modCase.moderatorId, displayAvatarURL: () => modCase.moderatorIconUrl };
+        const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
     
         const embed = await createEmbed(interaction.guild, moderator, modCase);
         return interaction.reply({ embeds: [embed], ephemeral: true });
@@ -197,7 +198,7 @@ export default class CaseCommand implements Command {
             return PunishmentLock.acquire(`punishment-${modCase.userId}`, async () => {
                 await prisma.punishment.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { reason } });
         
-                const moderator = { username: modCase.moderatorName, id: modCase.moderatorId, displayAvatarURL: () => modCase.moderatorIconUrl };
+                const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
                 const embed = await postModLogMessage(interaction.guild, moderator, modCase);
                 return interaction.editReply({ embeds: [embed] });
             });
@@ -253,7 +254,7 @@ export default class CaseCommand implements Command {
                     await interaction.guild.members.edit(modCase.userId, { communicationDisabledUntil: new Date(Date.now() + modCase.duration! * Time.Second), reason: modCase.reason });
                 }
 
-                const moderator = { username: modCase.moderatorName, id: modCase.moderatorId, displayAvatarURL: () => modCase.moderatorIconUrl };
+                const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
                 const embed = await postModLogMessage(interaction.guild, moderator, { ...modCase, createdAt: new Date(Date.now()) });
                 return interaction.editReply({ embeds: [embed] });
             });
@@ -291,7 +292,7 @@ export default class CaseCommand implements Command {
         return PunishmentLock.acquire(`punishment-${modCase.userId}`, async () => {
             await prisma.punishment.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { frozen: true } });
     
-            const moderator = { username: modCase.moderatorName, id: modCase.moderatorId, displayAvatarURL: () => modCase.moderatorIconUrl };
+            const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
             const embed = await postModLogMessage(interaction.guild, moderator, modCase);
             return interaction.reply({ embeds: [embed], ephemeral: true });
         });

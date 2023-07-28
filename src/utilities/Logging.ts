@@ -46,7 +46,7 @@ export async function createEmbed(guild: Guild, moderator: UserLike, data: CaseW
         name: `${moderator.username} (${moderator.id})`, // FIXME: Replace with Pomelo once released
     } as APIEmbedAuthor;
 
-    if(moderator.displayAvatarURL?.()) author.icon_url = moderator.displayAvatarURL();
+    if(moderator.iconUrl) author.icon_url = moderator.iconUrl;
     
     return {
         color: convertActionToColor(data.action),

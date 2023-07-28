@@ -16,6 +16,7 @@ import { prisma } from "../../utilities/Prisma.js";
 import { PaginatedMessage } from "@sapphire/discord.js-utilities";
 import { clamp } from "../../utilities/Clamp.js";
 import { createEmbed } from "../../utilities/Logging.js";
+import { UserLike } from "../../types/Punishment.js";
 
 export default class HistoryCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
@@ -76,7 +77,7 @@ export default class HistoryCommand implements Command {
         const message = new PaginatedMessage();
 
         for(const modCase of clamp(guild.cases, 24)) {
-            const moderator = { username: modCase.moderatorName, id: modCase.moderatorId, displayAvatarURL: () => modCase.moderatorIconUrl };
+            const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
 
             message.addPageEmbed(new EmbedBuilder(await createEmbed(interaction.guild, moderator, modCase )));
         }
