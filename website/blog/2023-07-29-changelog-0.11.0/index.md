@@ -37,7 +37,7 @@ However this also introduces the potential possibility for corruption and hiding
 
 When a punishment is frozen, it cannot be edited, nor can it be "thawed". This effectively locks the punishment so it cannot be modified.
 
-You can read more about frozen punishments over on [our documentation site](/docs/concepts/Punishments#FrozenPunishments)
+You can read more about frozen punishments over on [our documentation site](/docs/concepts/FrozenPunishments)
 
 ### DX Changes
 
