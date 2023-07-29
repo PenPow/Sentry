@@ -111,7 +111,7 @@ jobs:
           ref: ${{ github.sha }}
           sha: ${{ github.sha }}
           auto-inactive: false
-          environment: Production Bot
+          environment: Bot
 
       - name: Deploy Stage
         uses: fjogeleit/http-request-action@v1
