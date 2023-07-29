@@ -10,8 +10,8 @@ export const client = new SentryClient({
 Sentry.init({
     dsn: client.environment.SENTRY_DSN,
     release: client.environment.GIT_COMMIT,
-    enabled: client.environment.NODE_ENV === "PRODUCTION",
-    environment: client.environment.NODE_ENV.toLowerCase(),
+    enabled: client.environment.NODE_ENV === "production",
+    environment: client.environment.NODE_ENV,
     integrations: [
         new Sentry.Integrations.Undici(),
         new RewriteFrames({ root: "/usr/sentry/dist", prefix: "src/" }),
@@ -19,7 +19,7 @@ Sentry.init({
 });
 
 Sentry.setTags({ 
-    version: client.environment.NODE_ENV, 
+    version: client.environment.GIT_COMMIT, 
     started_at: new Date(Date.now()).toUTCString(), 
     node_version: client.environment.NODE_VERSION 
 });
