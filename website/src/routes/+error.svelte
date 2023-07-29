@@ -68,7 +68,7 @@
 				</div>
 				<div class="flex-auto">
 					<h3 class="text-sm font-semibold leading-6 text-gray-900">
-						<a href="/docs"><span class="absolute inset-0" aria-hidden="true" />Documentation</a>
+						<a href="https://sentry-docs.penpow.dev/docs/welcome"><span class="absolute inset-0" aria-hidden="true" />Documentation</a>
 					</h3>
 					<p class="mt-2 text-sm leading-6 color-gray-600">View our documentation</p>
 				</div>
@@ -106,7 +106,7 @@
 				</div>
 				<div class="flex-auto">
 					<h3 class="text-sm font-semibold leading-6 text-gray-900">
-						<a href="/blog"><span class="absolute inset-0" aria-hidden="true" />Blog</a>
+						<a href="https://sentry-docs.penpow.dev/blog"><span class="absolute inset-0" aria-hidden="true" />Blog</a>
 					</h3>
 					<p class="mt-2 text-sm leading-6 color-gray-600">Check out the latest posts</p>
 				</div>

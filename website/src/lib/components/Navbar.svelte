@@ -44,8 +44,8 @@
 				</button>
 			</div>
 			<div class="hidden lg:flex lg:gap-x-12">
-				<a href="/docs" class="text-md font-semibold leading-6 text-gray-900">Documentation</a>
-				<a href="/blog" class="text-md font-semibold leading-6 text-gray-900">Blog</a>
+				<a href="https://sentry-docs.penpow.dev/docs/welcome" class="text-md font-semibold leading-6 text-gray-900">Documentation</a>
+				<a href="https://sentry-docs.penpow.dev/blog" class="text-md font-semibold leading-6 text-gray-900">Blog</a>
 			</div>
 			<div class="hidden lg:flex lg:flex-1 lg:justify-end">
 				<a href="/dashboard" class="text-md font-semibold leading-6 text-gray-900"
