@@ -90,8 +90,8 @@
 				</div>
 
 				<img
-					src="https://cdn.penpow.dev/u/d1fe7aee-61a2-44f9-acaf-05b4cee98546.png"
-					alt="Product screenshot"
+					src="/automod.png"
+					alt="Automod Integration"
 					class="max-h-full max-w-full rounded-xl shadow-xl pt-24 md:-ml-4 lg:-ml-0"
 					width="601"
 					height="217"
@@ -106,8 +106,8 @@
 				class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2"
 			>
 				<img
-					src="https://cdn.penpow.dev/u/5976cb0f-0bc6-4384-829c-a402c63f281d.png"
-					alt="Product screenshot"
+					src="/mod-embed.png"
+					alt="Moderation Embed"
 					class="rounded-xl shadow-xl pt-24 max-h-full max-w-full md:-mr-4 lg:-mr-0"
 					width="601"
 					height="217"
@@ -274,7 +274,7 @@
 				</div>
 				<a href="https://github.com/PenPow/Sentry" target="_blank">
 					<img
-						src="https://cdn.penpow.dev/u/822b2af2-3c47-4d7f-a759-5b25ca00cd14.jpg"
+						src="/gh.jpg"
 						alt="Product screenshot"
 						class="max-h-full max-w-full rounded-xl shadow-xl pt-24 md:-ml-4 lg:-ml-0"
 						width="600"

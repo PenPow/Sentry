@@ -2,7 +2,7 @@
 	<a href="/"
 		><img
 			class="mx-auto h-24 w-auto mt-10 sm:h-36"
-			src="https://cdn.penpow.dev/u/SentryTransparent.png"
+			src="/social-card.png"
 			alt="Sentry Discord Bot"
 		/></a
 	>

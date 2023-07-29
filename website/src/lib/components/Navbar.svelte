@@ -15,8 +15,8 @@
 					<span class="sr-only">Sentry Discord Bot</span>
 					<img
 						class="h-12 sm:h-16 w-auto"
-						src="https://cdn.penpow.dev/u/SentryTransparent.png"
-						alt=""
+						src="/social-card.png"
+						alt="Sentry Logo"
 					/>
 				</a>
 			</div>
@@ -66,7 +66,7 @@
 							<span class="sr-only">Sentry Discord Bot</span>
 							<img
 								class="h-12 sm:h-16 w-auto"
-								src="https://cdn.penpow.dev/u/SentryTransparent.png"
+								src="/social-card.png"
 								alt=""
 							/>
 						</a>
@@ -92,12 +92,12 @@
 						<div class="-my-6 divide-y divide-gray-500/10">
 							<div class="space-y-2 py-6">
 								<a
-									href="/docs"
+									href="https://sentry-docs.penpow.dev/docs/welcome"
 									class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 									>Documentation</a
 								>
 								<a
-									href="/blog"
+									href="https://sentry-docs.penpow.dev/blog"
 									class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
 									>Blog</a
 								>
