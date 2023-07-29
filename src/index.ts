@@ -1,43 +1,27 @@
-import "@sapphire/plugin-logger/register";
-import "@sapphire/plugin-utilities-store/register";
-import "@sapphire/plugin-scheduled-tasks/register";
-import "dotenv/config";
-
-import { LogLevel, SapphireClient, ApplicationCommandRegistries, RegisterBehavior } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
-import { getToken } from "./utilities/SecretsUtility.js";
+import { SentryClient } from "./lib/framework/structures/SentryClient.js";
+import * as Sentry from "@sentry/node";
+import { RewriteFrames } from "@sentry/integrations";
 
-const client = new SapphireClient({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.AutoModerationExecution,
-    GatewayIntentBits.GuildModeration,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-  disableMentionPrefix: false,
-  shards: "auto",
-  logger: {
-    level: LogLevel.Debug,
-  },
-  tasks: {
-    bull: {
-      connection: {
-        port: 6379,
-        host: "redis",
-        db: 0,
-      },
-    },
-  },
+export const client = new SentryClient({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildModeration]
 });
 
-try {
-  void client.login(await getToken());
-} catch (e) {
-  client.logger.error(e);
-}
+Sentry.init({
+    dsn: client.environment.SENTRY_DSN,
+    release: client.environment.GIT_COMMIT,
+    enabled: client.environment.NODE_ENV === "PRODUCTION",
+    environment: client.environment.NODE_ENV.toLowerCase(),
+    integrations: [
+        new Sentry.Integrations.Undici(),
+        new RewriteFrames({ root: "/usr/sentry/dist", prefix: "src/" }),
+    ]
+});
 
-ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
+Sentry.setTags({ 
+    version: client.environment.NODE_ENV, 
+    started_at: new Date(Date.now()).toUTCString(), 
+    node_version: client.environment.NODE_VERSION 
+});
 
-/** Injected at build-time by docker */
-export const version = process.env.GIT_COMMIT;
+void client.login(client.environment.DISCORD_TOKEN);

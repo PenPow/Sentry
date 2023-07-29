@@ -3,3 +3,4 @@ node_modules/
 ./prettier.config.cjs
 ./commitlint.config.cjs
 scripts/**/*
+website/**/*

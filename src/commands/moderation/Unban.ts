@@ -1,111 +1,78 @@
-import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
-import { ApplyOptions } from "@sapphire/decorators";
 import {
-  APIEmbed,
-  ActionRowBuilder,
-  ApplicationCommandType,
-  ModalBuilder,
-  PermissionFlagsBits,
-  PermissionsBitField,
-  TextInputBuilder,
-  TextInputStyle,
+    ApplicationCommandOptionType, 
+    AutocompleteInteraction,
+    CacheType, 
+    ChatInputCommandInteraction, 
+    CommandInteraction, 
+    PermissionsBitField, 
+    RESTPostAPIApplicationCommandsJSONBody, 
 } from "discord.js";
-import { CaseAction } from "@prisma/client";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { PermissionsValidator } from "../../utilities/Permissions.js";
+import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
+import { Option } from "@sapphire/result";
+import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { createPunishment } from "../../functions/createPunishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
-@ApplyOptions<Command.Options>({
-  description: "Unban a user",
-  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
-})
-export class UnbanCommand extends Command {
-  public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
-        .addUserOption((option) => option.setName("user").setDescription("The user to unban (paste their user id)").setRequired(true))
-        .addStringOption((option) =>
-          option.setName("reason").setDescription("The reason for adding the unban").setRequired(true).setMaxLength(500).setAutocomplete(true)
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("reference")
-            .setDescription("Add a case to reference this unban with")
-            .setMinValue(1)
-            .setRequired(false)
-            .setAutocomplete(true)
-        )
-    );
+export default class UnbanCommand implements Command {
+    public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
+        
+        const { member, guild } = interaction;
 
-    registry.registerContextMenuCommand((builder) =>
-      builder
-        .setName("Unban User")
-        .setType(ApplicationCommandType.Message)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
-    );
-  }
-
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    let reference = interaction.options.getInteger("reference", false);
-
-    if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
-
-      if (referencedCase) reference = referencedCase.id;
-      else reference = null;
+        const target = interaction.isUserContextMenuCommand() 
+            ? interaction.targetMember 
+            : interaction.options.getMember("user") ?? interaction.options.getUser("user", true);
+        
+        return permissionsV1(member, target, guild);
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(interaction.guild, {
-      reason,
-      guildId: interaction.guildId,
-      duration: null,
-      moderatorId: interaction.user.id,
-      action: "Unban",
-      userId: user.id,
-      userName: user.username,
-      referenceId: reference,
-    });
-
-    const [_caseData, embed] = modCase.expect("Expected case data");
-
-    return interaction.reply({ embeds: [embed] });
-  }
-
-  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
-    if (!interaction.isMessageContextMenuCommand()) return;
-
-    const message = interaction.targetMessage;
-
-    const caseNo = message.embeds[0]?.footer?.text.split("#")[1] ?? "-1";
-    const modCase = await this.container.prisma.moderation.findFirst({ where: { caseId: parseInt(caseNo, 10) ?? -1, guildId: interaction.guildId } });
-
-    if (!modCase || modCase.action !== "Ban") {
-      const embed: APIEmbed = {
-        title: "No Case Log Found",
-        description: `This command needs to be ran on a case log message produced by Sentry, referring to a ban`,
-        color: 0xff595e,
-      };
-
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        return createPunishment(interaction, "Unban");
     }
 
-    const modal = new ModalBuilder()
-      .setCustomId(`mod-${CaseAction.Unban}.${modCase.userId}-${modCase.userName}-${modCase.id}`)
-      .setTitle("Create New Unban")
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId("reason")
-            .setLabel("Reason")
-            .setMaxLength(500)
-            .setPlaceholder("They ...")
-            .setRequired(true)
-            .setStyle(TextInputStyle.Short)
-        )
-      );
+    public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
+        const option = interaction.options.getFocused(true);
 
-    return interaction.showModal(modal);
-  }
+        if(option.name === "reason") {
+            return interaction.respond(reasonAutocompleteHandler(option, "Removal"));
+        } else if (option.name === "reference") {
+            return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        }
+    }
+
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
+        return [
+            {
+                name: 'unban',
+                description: 'Remove a ban from a user',
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.BanMembers).valueOf()),
+                options: [
+                    {
+                        name: 'user',
+                        description: 'The user to unban',
+                        type: ApplicationCommandOptionType.User,
+                        required: true,
+                    },
+                    {
+                        name: 'reason',
+                        description: 'The reason to attach to this moderator action',
+                        type: ApplicationCommandOptionType.String,
+                        max_length: 500,
+                        autocomplete: true,
+                        required: true,
+                    },
+                    {
+                        name: 'reference',
+                        description: 'Reference another case in this mod action',
+                        type: ApplicationCommandOptionType.Integer,
+                        min_value: 1,
+                        autocomplete: true,
+                    }
+                ]
+            }];
+    }
 }

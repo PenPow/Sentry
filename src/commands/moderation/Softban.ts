@@ -1,105 +1,141 @@
-import { ApplicationCommandRegistry, Command } from "@sapphire/framework";
-import { ApplyOptions } from "@sapphire/decorators";
-import {
-  ActionRowBuilder,
-  ApplicationCommandType,
-  ModalBuilder,
-  PermissionFlagsBits,
-  PermissionsBitField,
-  TextInputBuilder,
-  TextInputStyle,
+import { 
+    ActionRowBuilder,
+    ApplicationCommandOptionType, 
+    ApplicationCommandType, 
+    AutocompleteInteraction,
+    CacheType, 
+    ChatInputCommandInteraction, 
+    CommandInteraction, 
+    ModalBuilder, 
+    ModalSubmitInteraction, 
+    PermissionsBitField, 
+    RESTPostAPIApplicationCommandsJSONBody, 
+    TextInputBuilder, 
+    TextInputStyle, 
+    UserContextMenuCommandInteraction
 } from "discord.js";
-import { CaseAction } from "@prisma/client";
+import { Command, PreconditionOption } from "../../lib/framework/structures/Command.js";
+import { PermissionsValidator } from "../../utilities/Permissions.js";
+import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
+import { Option } from "@sapphire/result";
+import { PunishmentLock, createCase } from "../../utilities/Punishments.js";
+import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
+import { createPunishment } from "../../functions/createPunishment.js";
+import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
-@ApplyOptions<Command.Options>({
-  description: "Softban a user from your server",
-  preconditions: ["ClientNeedsModerationPrivileges", "GuildTextOnly"],
-})
-export class SoftbanCommand extends Command {
-  public override registerApplicationCommands(registry: ApplicationCommandRegistry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
-        .addUserOption((option) => option.setName("user").setDescription("The user to softban").setRequired(true))
-        .addStringOption((option) =>
-          option.setName("reason").setDescription("The reason for adding the punishment").setRequired(true).setMaxLength(500).setAutocomplete(true)
-        )
-        .addBooleanOption((option) =>
-          option.setName("dm").setDescription("Message the user with details of their case (default true)").setRequired(false)
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("reference")
-            .setDescription("Add a case to reference this punishment with")
-            .setMinValue(1)
-            .setRequired(false)
-            .setAutocomplete(true)
-        )
-    );
+export default class SoftbanCommand implements Command {
+    public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
+        if(!interaction.inCachedGuild()) return Option.some(new PreconditionValidationError('Not in guild', "You must be in a guild to run this command"));
+        
+        const { member, guild } = interaction;
 
-    registry.registerContextMenuCommand((builder) =>
-      builder
-        .setName("Softban User")
-        .setType(ApplicationCommandType.User)
-        .setDefaultMemberPermissions(new PermissionsBitField([PermissionFlagsBits.BanMembers]).valueOf())
-    );
-  }
-
-  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction<"cached">) {
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    const dm = interaction.options.getBoolean("dm", false) ?? false;
-    let reference = interaction.options.getInteger("reference", false);
-
-    if (reference) {
-      const referencedCase = await this.container.prisma.moderation.findFirst({ where: { caseId: reference, guildId: interaction.guildId } });
-
-      if (referencedCase) reference = referencedCase.id;
-      else reference = null;
+        const target = interaction.isUserContextMenuCommand() 
+            ? interaction.targetMember 
+            : interaction.options.getMember("user") ?? interaction.options.getUser("user", true);
+        
+        return permissionsV1(member, target, guild);
     }
 
-    const modCase = await this.container.utilities.moderation.createCase(
-      interaction.guild,
-      {
-        reason,
-        guildId: interaction.guildId,
-        duration: null,
-        moderatorId: interaction.user.id,
-        action: "Softban",
-        userId: user.id,
-        userName: user.username,
-        referenceId: reference,
-      },
-      dm
-    );
+    public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
+        return createPunishment(interaction, "Softban");
+    }
 
-    const [_caseData, embed] = modCase.expect("Expected case data");
+    public async userContextMenuRun(interaction: UserContextMenuCommandInteraction<"cached">) {
+        const user = interaction.targetUser;
 
-    return interaction.reply({ embeds: [embed] });
-  }
+        const modal = new ModalBuilder()
+            .setCustomId(`softban.${user.id}-${user.username}`)
+            .setTitle("Create New Softban")
+            .addComponents(
+                new ActionRowBuilder<TextInputBuilder>().addComponents(
+                    new TextInputBuilder()
+                        .setCustomId("reason")
+                        .setLabel("Reason")
+                        .setMaxLength(500)
+                        .setPlaceholder("They ...")
+                        .setRequired(true)
+                        .setStyle(TextInputStyle.Short)
+                )
+            );
+    
+        await interaction.showModal(modal);
+    }
 
-  public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<"cached">) {
-    if (!interaction.isUserContextMenuCommand()) return;
+    public async modalRun(interaction: ModalSubmitInteraction<"cached">) {
+        const [userId, username] = interaction.customId.split('.')[1]!.split('-') as [string, string];
 
-    const user = interaction.targetUser;
+        await interaction.deferReply();
 
-    const modal = new ModalBuilder()
-      .setCustomId(`mod-${CaseAction.Softban}.${user.id}-${user.username}`)
-      .setTitle("Create New Softban")
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId("reason")
-            .setLabel("Reason")
-            .setMaxLength(500)
-            .setPlaceholder("They ...")
-            .setRequired(true)
-            .setStyle(TextInputStyle.Short)
-        )
-      );
+        await PunishmentLock.acquire(`punishment-${userId}`, async () => {
+            const [, embed] = await createCase(interaction.guild, {
+                guildId: interaction.guildId,
+                reason: interaction.fields.getTextInputValue("reason"),
+                duration: null,
+                moderatorId: interaction.user.id,
+                moderatorName: interaction.user.username,
+                moderatorIconUrl: interaction.user.displayAvatarURL(),
+                action: "Softban",
+                userId,
+                userName: username,
+                referenceId: null
+            }, { dm: true, dry: false });
 
-    await interaction.showModal(modal);
-  }
+            await interaction.editReply({ embeds: [embed ]});
+        });
+    }
+
+    public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
+        const option = interaction.options.getFocused(true);
+
+        if(option.name === "reason") {
+            return interaction.respond(reasonAutocompleteHandler(option));
+        } else if (option.name === "reference") {
+            return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        }
+    }
+
+    public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
+        return [
+            {
+                name: 'softban',
+                description: 'Softban [ban and immediately unban] a user from your server.',
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.KickMembers).valueOf()),
+                options: [
+                    {
+                        name: 'user',
+                        description: 'The user to softban',
+                        type: ApplicationCommandOptionType.User,
+                        required: true,
+                    },
+                    {
+                        name: 'reason',
+                        description: 'The reason for adding this punishment',
+                        type: ApplicationCommandOptionType.String,
+                        max_length: 500,
+                        autocomplete: true,
+                        required: true,
+                    },
+                    {
+                        name: 'dm',
+                        description: 'Message the user with details of their punishment',
+                        type: ApplicationCommandOptionType.Boolean,
+                    },
+                    {
+                        name: 'reference',
+                        description: 'Reference another case in this punishment',
+                        type: ApplicationCommandOptionType.Integer,
+                        min_value: 1,
+                        autocomplete: true,
+                    }
+                ]
+            }, 
+            {
+                name: 'Softban User',
+                type: ApplicationCommandType.User,
+                dm_permission: false,
+                default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.KickMembers).valueOf()),
+            }];
+    }
 }

@@ -8,18 +8,16 @@ module.exports = {
 		warnOnUnsupportedTypeScriptVersion: false,
 	},
 	plugins: ["deprecation"],
-	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'plugin:@sapphire/result/recommended', "plugin:node/recommended", 'plugin:import/recommended', 'plugin:import/typescript'],
+	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', "plugin:node/recommended", 'plugin:import/recommended', 'plugin:import/typescript'],
 	settings: {
 		"import/parsers": {
 			"@typescript-eslint/parser": [".ts", ".tsx"]
 		  },
 		  "import/resolver": {
-			"typescript": {
-			  "alwaysTryTypes": true,
-			}
+			"typescript": true
 		  }
 	},
-	ignorePatterns: ["node_modules", ".eslintrc.cjs", "commitlint.config.js", "tsup.config.ts", "dist"],
+	ignorePatterns: ["node_modules", ".eslintrc.cjs", "commitlint.config.js", "tsup.config.ts", "dist", "website"],
 	env: {
 		node: true,
 		es2022: true,
@@ -148,6 +146,7 @@ module.exports = {
 		'id-blacklist': 'off',
 		'id-length': 'off',
 		'id-match': 'off',
+		"indent": ["error", 4],
 		'init-declarations': 'off',
 		'line-comment-position': 'off',
 		'lines-between-class-members': [
@@ -182,7 +181,7 @@ module.exports = {
 		'no-class-assign': 'warn',
 		'no-compare-neg-zero': 'error',
 		'no-cond-assign': 'warn',
-		'no-console': 'off',
+		'no-console': 'error',
 		'no-const-assign': 'error',
 		'no-constant-condition': 'off',
 		'no-control-regex': 'off',
@@ -297,7 +296,9 @@ module.exports = {
 		'no-useless-return': 'warn',
 		'no-var': 'error',
 		'no-void': 'off',
-		'no-warning-comments': 'off',
+		'no-warning-comments': ["warn", {
+			"terms": ["TODO", "FIXME", "HACK"],
+		}],
 		'no-with': 'error',
 		'node/no-missing-import': 'off',
 		'object-shorthand': ['error', 'always'],
