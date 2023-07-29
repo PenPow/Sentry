@@ -25,7 +25,7 @@ But hey, its not all sad, as we added a few more QOL features.
 
 Our commands now have some beautiful error handling. In the unlikely event that an issue occurs, you now recieve a fancy embed displaying issues. For internal errors we also automatically forward the issue to ourselves.
 
-Its a minor change but yet welcome.
+Its a minor change but yet always a welcome one.
 
 ### 🧊 Frozen Punishments
 
