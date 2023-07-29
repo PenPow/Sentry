@@ -2,7 +2,7 @@ name: Continuous Delivery
 
 on:
   release:
-    types: [published]
+    types: [released]
 
 env:
   REGISTRY: ghcr.io
