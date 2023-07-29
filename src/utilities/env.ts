@@ -8,7 +8,7 @@ const schema = s.object({
     PRISMA_ENCRYPTION_KEY: s.string.lengthEqual(57),
 
     SENTRY_DSN: s.string.url(),
-    NODE_ENV: s.union(s.literal("PRODUCTION"), s.literal("DEVELOPMENT")),
+    NODE_ENV: s.union(s.literal("production"), s.literal("development")),
 
     // NOTE: Injected at compile time
     // eslint-disable-next-line max-len
