@@ -17,7 +17,7 @@ module.exports = {
 			"typescript": true
 		  }
 	},
-	ignorePatterns: ["node_modules", ".eslintrc.cjs", "commitlint.config.js", "tsup.config.ts", "dist"],
+	ignorePatterns: ["node_modules", ".eslintrc.cjs", "commitlint.config.js", "tsup.config.ts", "dist", "website"],
 	env: {
 		node: true,
 		es2022: true,
