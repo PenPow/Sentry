@@ -139,9 +139,12 @@ jobs:
           state: 'failure'
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
+      - name: Checkout Project
+        uses: actions/checkout@v3
+
       - name: Create Deployment on Sentry
         if: steps.update_deployment_success.outcome == 'success'
         run: |
-          chmod +x ./scripts/buildSentryRelease.sh
-          ./scripts/buildSentryRelease.sh
+          chmod +x ./scripts/createSentryDeploy.sh
+          ./scripts/createSentryDeploy.sh
         shell: bash
