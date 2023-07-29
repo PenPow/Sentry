@@ -102,6 +102,25 @@ jobs:
       deployments: write
 
     steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+      
+      - name: Use Node.js v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Code
+        run: npx tsc
+
+      - name: Authenticate Sentry
+        run: ./node_modules/.bin/sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
+        
       - uses: chrnorm/deployment-action@v2
         name: Create Deployment
         id: deployment
@@ -138,9 +157,6 @@ jobs:
           token: '${{ github.token }}'
           state: 'failure'
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-
-      - name: Checkout Project
-        uses: actions/checkout@v3
 
       - name: Create Deployment on Sentry
         if: steps.update_deployment_success.outcome == 'success'
