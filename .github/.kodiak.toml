@@ -1,7 +1,6 @@
 version = 1
 
 [update]
-ignored_usernames = ["renovate"]
 always = true
 
 [merge]
