@@ -64,7 +64,7 @@ jobs:
           run: npm version  ${{ steps.version.outputs.versionBump }} --git-tag-version false
 
         - name: Create Changelog
-          run: conventional-changelog -p angular -i CHANGELOG.md -s
+          run: ./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s
 
         - name: Create Commit
           uses: stefanzweifel/git-auto-commit-action@v4
