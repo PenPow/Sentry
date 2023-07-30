@@ -1,0 +1,149 @@
+name: Release Management
+
+on:
+    workflow_dispatch:
+    pull_request:
+        types: [closed]
+        branches:
+          - 'release/**'
+        paths:
+          - 'CHANGELOG.md'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create_pr:
+    if: github.event_name == 'workflow_dispatch' && github.event.pull_request.comments
+    runs-on: ubuntu-latest
+
+    # > Checkout Latest Code ✔️
+    # > Determine Next Version ✔️
+    # > Make new release branch for that version ✔️
+    # > Generate Changelog ✔️
+    # > Open PR ✔️
+    steps:
+        - uses: actions/checkout@v3
+
+        - name: Use Node.js v18
+          uses: actions/setup-node@v3
+          with:
+            node-version: 18
+            cache: npm
+            registry-url: https://registry.npmjs.org/
+
+        - name: Install Dependencies
+          run: npm ci
+
+        - name: Get current package version
+          id: pkg
+          uses: martinbeentjes/npm-get-version-action@v1.3.1
+  
+        - name: Determine Version Bump Action
+          id: version
+          uses: PenPow/determine-version-bump-action@2.0
+          with:
+              currentVersion: ${{ steps.pkg.outputs.current-version }}
+  
+        - name: Log Changes
+          run: |
+            echo Bumped: ${{ steps.version.outputs.bumpedVersion }}
+            echo Change: ${{ steps.version.outputs.versionBump }}
+          shell: bash
+
+        - name: Create Release Branch
+          uses: peterjgrainger/action-create-branch@v2.2.0
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            branch: "release/${{ steps.version.outputs.versionBump }}"
+            sha: '${{ github.event.pull_request.head.sha }}'
+
+        - name: Bump package.json
+          run: npm version  ${{ steps.version.outputs.versionBump }} --git-tag-version false
+
+        - name: Create Changelog
+          run: conventional-changelog -p angular -i CHANGELOG.md -s
+
+        - name: Create Commit
+          uses: stefanzweifel/git-auto-commit-action@v4
+          with:
+              commit_message: "chore(release): bump version to ${{ steps.version.outputs.bumpedVersion }}"
+
+        - name: Open PR
+          uses: peter-evans/create-pull-request@v5
+          with:
+            author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+            branch: "release/${{ steps.version.outputs.versionBump }}"
+            title: "Release Dashboard: ${{ steps.version.outputs.versionBump }}"
+            labels: release
+            assignees: penpow
+            reviewers: penpow
+            body: |
+              > 🏗️ This release script is still under construction!
+
+              This PR is attempting to bump Sentry to `v${{ steps.version.outputs.bumpedVersion }}` (a `${{ steps.version.outputs.versionBump }}` bump)
+
+              If this update requires a blog post, please push it to the branch `release/${{ steps.version.outputs.versionBump }}`.
+
+              To create the release, merge this PR. To abandon it, please close it.
+        
+
+  make_release:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged
+    runs-on: ubuntu-latest
+
+    # > Checkout code again ✔️
+    # > Make release
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Get Version from PR
+        uses: mad9000/actions-find-and-replace-string@3
+        id: version
+        with:
+          source: ${{ github.event.pull_request.title }}
+          find: "chore(release): bump version to "
+          replace: ""
+
+      - name: Create tag
+        id: tag
+        uses: rickstaa/action-create-tag@v1.6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.version.outputs.value }}
+
+      - name: Extract Changes in this Version
+        run: |
+          if [ ! -f RELEASE_HEAD.md ]; then
+            if grep -q "^# " README.md; then
+              sed -ne "/^# / p; 2,/^$/ p" README.md > RELEASE_HEAD.md
+            else
+              sed -ne "1,/^$/ p" README.md > RELEASE_HEAD.md
+            fi
+
+            echo -e "Changes in this version:\n" >> RELEASE_HEAD.md
+          fi
+        shell: bash
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release create
+          -F RELEASE_HEAD.md
+          -t "Sentry v${{ steps.version.outputs.value }}"
+          --verify-tag
+          --latest
+         

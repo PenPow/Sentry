@@ -6,6 +6,8 @@
   color: 'd73a4a'
 - name: chore
   color: 'ffffff'
+- name: release
+  color: '0075ca'
 - name: ci
   color: '0075ca'
 - name: dependencies
