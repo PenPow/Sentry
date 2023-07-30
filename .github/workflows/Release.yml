@@ -77,6 +77,7 @@ jobs:
           with:
             author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
             branch: "release/${{ steps.version.outputs.versionBump }}"
+            base: main
             title: "Release Dashboard: ${{ steps.version.outputs.versionBump }}"
             labels: release
             assignees: penpow
