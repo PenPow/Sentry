@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 LABEL org.opencontainers.image.source="https://github.com/PenPow/Sentry"
 LABEL org.opencontainers.image.description="Sentry's docker image"
