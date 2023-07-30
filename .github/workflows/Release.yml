@@ -57,7 +57,7 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
-            branch: "release/${{ steps.version.outputs.versionBump }}"
+            branch: "release/${{ steps.version.outputs.bumpedVersion }}"
             sha: '${{ github.event.pull_request.head.sha }}'
 
         - name: Bump package.json
@@ -70,13 +70,13 @@ jobs:
           uses: stefanzweifel/git-auto-commit-action@v4
           with:
               commit_message: "release: bump version to ${{ steps.version.outputs.bumpedVersion }}"
-              branch: "release/${{ steps.version.outputs.versionBump }}"
+              branch: "release/${{ steps.version.outputs.bumpedVersion }}"
 
         - name: Open PR
           uses: peter-evans/create-pull-request@v5
           with:
             author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
-            branch: "release/${{ steps.version.outputs.versionBump }}"
+            branch: "release/${{ steps.version.outputs.bumpedVersion }}"
             base: main
             title: "Release Dashboard: ${{ steps.version.outputs.versionBump }}"
             labels: release
