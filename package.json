@@ -35,7 +35,7 @@
   },
   "engineStrict": true,
   "dependencies": {
-    "@prisma/client": "^4.16.1",
+    "@prisma/client": "^5.0.0",
     "@sapphire/discord.js-utilities": "^7.0.0",
     "@sapphire/result": "^2.6.4",
     "@sapphire/shapeshift": "^3.9.2",
