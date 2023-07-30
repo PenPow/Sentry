@@ -1,7 +1,6 @@
 version = 1
 
 [update]
-ignored_usernames = ["dependabot"]
 always = true
 
 [merge]
