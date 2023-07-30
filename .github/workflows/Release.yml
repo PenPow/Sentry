@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   create_pr:
-    if: github.event_name == 'workflow_dispatch' && github.event.pull_request.comments
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     # > Checkout Latest Code ✔️
