@@ -3,14 +3,13 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/vsDark');
 
-const math = require('remark-math');
-const katex = require('rehype-katex');
-
 const a11yEmoji = require('@fec/remark-a11y-emoji');
 
 module.exports = async function configCreatorAsync() {
     const remarkGfm = (await import("remark-gfm")).default
     const remarkGithub = (await import("remark-github")).default
+    const math = (await import("remark-math")).default
+    const katex = (await import("rehype-katex")).default
 
     /** @type {import('@docusaurus/types').Config} */
     const config = {
