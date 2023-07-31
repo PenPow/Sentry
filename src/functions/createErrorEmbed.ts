@@ -2,7 +2,6 @@ import { APIEmbed } from "discord.js";
 import { InternalError } from "../lib/framework/structures/errors/InternalError.js";
 import { PreconditionValidationError } from "../lib/framework/structures/errors/PreconditionValidationError.js";
 import { UserError } from "../lib/framework/structures/errors/UserError.js";
-import { client } from "../index.js";
 
 export function createErrorEmbed(error: Error): APIEmbed {
     if(error instanceof InternalError || error instanceof UserError || error instanceof PreconditionValidationError) {

@@ -3,9 +3,11 @@ import { SentryClient } from "./lib/framework/structures/SentryClient.js";
 import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
 
-export const client = new SentryClient({
+const client = new SentryClient({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildModeration]
 });
+
+globalThis.client = client;
 
 Sentry.init({
     dsn: client.environment.SENTRY_DSN,

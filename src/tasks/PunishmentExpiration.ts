@@ -1,4 +1,3 @@
-import { client } from "../index.js";
 import { ScheduledTaskManager } from "../lib/framework/structures/ScheduledTasks.js";
 import { CaseWithReference } from "../types/Punishment.js";
 import { prisma } from "../utilities/Prisma.js";

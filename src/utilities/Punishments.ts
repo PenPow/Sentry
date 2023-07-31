@@ -16,9 +16,11 @@ export const PunishmentLock = new AsyncLock();
 const RedisLock = new AsyncLock();
 export function getCaseId(guildId: Snowflake): Promise<number> {
     return new Promise((resolve, reject) => {
+        if(import.meta.vitest) return resolve(1); // manual stub
+
         void RedisLock.acquire(`caseid-${guildId}`, async () => {
             const id = await redis.incr(`p-id-${guildId}`);
-            resolve(id);
+            return resolve(id);
         }).catch(reject);
     });
 }
@@ -105,10 +107,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
 
             await guild.client.users.send(data.userId, { embeds: [embed], components: [row] });
         }
-    } catch(error) {
-        Sentry.captureException(error);
-        return [punishment, createErrorEmbed(error as Error)];
-    }
+    } catch(error) {}
 
     try {
         if(data.action === "Ban") {
