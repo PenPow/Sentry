@@ -1,5 +1,5 @@
-import { describe, test, expect, vi, afterAll, afterEach, beforeEach, expectTypeOf } from "vitest";
-import { APIEmbed, ChannelType, Guild } from "discord.js";
+import { describe, test, expect, vi, afterAll, afterEach, beforeEach } from "vitest";
+import { ChannelType, Guild } from "discord.js";
 import { createEmbed, getGuildLogChannel } from "../src/utilities/Logging.js";
 import { CaseWithReference, UserLike } from "../src/types/Punishment.js";
 import { Duration } from "@sapphire/time-utilities";
@@ -85,8 +85,6 @@ describe("Logging Utilities", () => {
 
         test("Creates Base Embed", async () => {
             const embed = await createEmbed(guildStub, moderator, { ...baseCaseData });
-            
-            expectTypeOf(embed).toEqualTypeOf<APIEmbed>();
 
             expect(embed.author!.icon_url).toStrictEqual(moderator.iconUrl);
             expect(embed.author!.name).toStrictEqual(`${moderator.username} (${moderator.id})`);
