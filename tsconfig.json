@@ -35,7 +35,9 @@
 		"lib": ["ESNext"],
 		"target": "ES2022",
 		"useDefineForClassFields": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+
+		"types": ["vitest/importMeta"]
 	},
-	"include": ["src/**/*"]
+	"include": ["src/**/*", "tests/**/*", "vite.config.ts"]
 }

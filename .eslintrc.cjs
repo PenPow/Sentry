@@ -303,6 +303,7 @@ module.exports = {
 		}],
 		'no-with': 'error',
 		'node/no-missing-import': 'off',
+		'node/no-unpublished-import': ["error", { "allowModules": ["vitest"] }],
 		'object-shorthand': ['error', 'always'],
 		'one-var': ['error', 'never'],
 		'operator-assignment': ['error', 'always'],
