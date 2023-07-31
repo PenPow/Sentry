@@ -13,6 +13,7 @@
     "start:migrate": "cross-env DATABASE_URL=\"postgresql://postgres:postgres@db:5432/sentry?schema=public\" prisma migrate deploy && npm run start",
     "migrate": "cross-env DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/sentry?schema=public\" prisma migrate dev",
     "test": "vitest",
+    "test:types": "vitest typecheck",
     "lint": "eslint \"src/**/*\""
   },
   "keywords": [

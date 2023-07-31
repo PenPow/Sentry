@@ -1,4 +1,4 @@
-import { describe, vi, test, expect, beforeAll, expectTypeOf } from "vitest";
+import { describe, vi, test, expect, beforeAll } from "vitest";
 import { Schema, loadEnv } from "../src/utilities/env.js";
 import { BaseError } from "@sapphire/shapeshift";
 
@@ -53,9 +53,5 @@ describe("Environment Variable Parsing", () => {
         stubInvalidEnvironment();
 
         expect(loadEnv()).toBeInstanceOf(BaseError);
-    });
-
-    test("Produces Correct Typings", () => {
-        expectTypeOf(loadEnv()).toEqualTypeOf<Schema>();
     });
 });
