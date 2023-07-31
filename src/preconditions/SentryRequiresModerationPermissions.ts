@@ -5,8 +5,16 @@ import stripIndent from "strip-indent";
 import { PreconditionValidationError } from "../lib/framework/structures/errors/PreconditionValidationError.js";
 import { InternalError } from "../lib/framework/structures/errors/InternalError.js";
 
+function isGuildMember(user: User | GuildMember): user is GuildMember {
+    return "guild" in user;
+}
+
 // Adapted from https://github.com/discordjs/discord.js/blob/75d91b52b3ff1ea5ec82b94d1c9c127d9eac3e55/packages/discord.js/src/structures/GuildMember.js#L265
 export function permissionsV1(member: GuildMember, target: GuildMember | User, guild: Guild): PreconditionOption {
+    if(target.id === member.id) 
+        // eslint-disable-next-line max-len
+        return Option.some(new PreconditionValidationError("Target is immune", "The target's permissions mean they are immune from punishment (target is self)"));
+    
     if (target.id === guild.ownerId)
         // eslint-disable-next-line max-len
         return Option.some(new PreconditionValidationError("Target is immune", "The target's permissions mean they are immune from punishment (target owns server)"));
@@ -54,7 +62,7 @@ export function permissionsV1(member: GuildMember, target: GuildMember | User, g
             new PreconditionValidationError("Missing Permissions", "You require the following permissions to execute this command:\n```diff\n+ Ban Members\n+ Kick Members\n+ Moderate Members```")
         );
 
-    if (target instanceof GuildMember) {
+    if (isGuildMember(target)) {
         if (target.permissions.has(PermissionFlagsBits.Administrator))
             // eslint-disable-next-line max-len
             return Option.some(new PreconditionValidationError("Target is immune", "The target's permissions mean they are immune from punishment (target has administrator permission)"));

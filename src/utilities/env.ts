@@ -16,11 +16,16 @@ const schema = s.object({
     GIT_COMMIT: s.string.lengthEqual(40)
 });
 
-export function loadEnv(logger?: Logger<ILogObj>): InferType<typeof schema> {
+export type Schema = InferType<typeof schema>
+
+export function loadEnv(logger?: Logger<ILogObj>): Schema {
     try {
         return schema.parse(process.env);
     } catch (err) {
         logger?.fatal(inspect(err, { colors: true }));
+
+        // @ts-expect-error stubbed to use in vitest
+        if(global.vitest) return err;
         
         process.exit(1);
     }

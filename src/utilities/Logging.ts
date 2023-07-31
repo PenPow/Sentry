@@ -1,19 +1,19 @@
 import { Time } from "@sapphire/time-utilities";
-import { APIEmbed, APIEmbedAuthor, ChannelType, Guild, TimestampStyles, hyperlink, messageLink, time } from "discord.js";
+import { APIEmbed, APIEmbedAuthor, ChannelType, Guild, TextChannel, TimestampStyles, hyperlink, messageLink, time } from "discord.js";
 import { CaseWithReference, UserLike } from "../types/Punishment.js";
 import { prettifyCaseActionName, convertActionToColor } from "./Punishments.js";
 import { prisma } from "./Prisma.js";
 import * as Sentry from "@sentry/node";
 
-async function getGuildLogChannel(guild: Guild) {
+export async function getGuildLogChannel(guild: Guild): Promise<TextChannel | null>  {
     const channels = await guild.channels.fetch();
-    const channel = channels.filter((channel) => channel?.type === ChannelType.GuildText).find((channel) => 
+    const channel = channels.filter((channel) => channel?.type === ChannelType.GuildText && channel.isTextBased()).find((channel) => 
         ["modlogs", "modlog", "mod-log", "mod-logs", "logs", "sentry-logs", "sentry-log"].includes(channel!.name)
     );
 
-    if (!channel || !channel.isTextBased()) return null;
+    if (!channel) return null;
 
-    return channel;
+    return channel as TextChannel;
 }
 
 export async function createEmbed(guild: Guild, moderator: UserLike, data: CaseWithReference): Promise<APIEmbed> {
