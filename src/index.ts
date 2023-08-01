@@ -16,8 +16,15 @@ Sentry.init({
     environment: client.environment.NODE_ENV,
     integrations: [
         new Sentry.Integrations.Undici(),
-        new RewriteFrames({ root: "/usr/sentry/dist", prefix: "src/" }),
-    ]
+        new RewriteFrames({ root: "/usr/sentry/dist" }),
+    ],
+    beforeBreadcrumb(breadcrumb) {
+        if(breadcrumb.category === "console" && breadcrumb.message) {
+            breadcrumb.message = breadcrumb.message.replace(/\x1b\[[0-9]+m/, "");
+        }
+
+        return breadcrumb;
+    },
 });
 
 Sentry.setTags({ 

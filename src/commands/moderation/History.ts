@@ -66,7 +66,7 @@ export default class HistoryCommand implements Command {
             include: { cases: { where: { userId }, include: { caseReference: true } } },
         });
       
-        if (!guild) {
+        if (!guild?.cases) {
             const embed: APIEmbed = {
                 title: "No Moderation History",
                 color: 0x86b53a,
