@@ -1,0 +1,8 @@
+# Sentry Auth Token
+.sentryclirc
+
+node_modules
+dist
+.next
+build
+.contentlayer

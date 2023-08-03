@@ -1,8 +1,0 @@
-{
-  "label": "Concepts",
-  "position": 4,
-  "link": {
-    "type": "generated-index",
-    "description": "Sentry is designed to provide a solution for all moderation teams. You can read more about our advanced concepts and functionalities here."
-  }
-}
