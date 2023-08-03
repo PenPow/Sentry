@@ -1,17 +1,17 @@
 import AsyncLock from "async-lock";
 import { APIEmbed, ActionRowBuilder, ButtonBuilder, ButtonStyle, Guild, Snowflake } from "discord.js";
-import { Case, CaseWithReference } from "../types/Punishment.js";
+import { Case, CaseWithReference } from "../types/Infraction.js";
 import { prisma } from "./Prisma.js";
 import { Time } from "@sapphire/time-utilities";
 import { redis } from "./Redis.js";
-import { PunishmentScheduledTaskManager } from "../tasks/PunishmentExpiration.js";
+import { InfractionScheduledTaskManager } from "../tasks/InfractionExpiration.js";
 import { CaseAction } from "@prisma/client";
 import { postModLogMessage } from "./Logging.js";
 import { Job } from "bullmq";
 import * as Sentry from "@sentry/node";
 import { createErrorEmbed } from "../functions/createErrorEmbed.js";
 
-export const PunishmentLock = new AsyncLock();
+export const InfractionLock = new AsyncLock();
 
 const RedisLock = new AsyncLock();
 export function getCaseId(guildId: Snowflake): Promise<number> {
@@ -26,7 +26,7 @@ export function getCaseId(guildId: Snowflake): Promise<number> {
 }
 
 export async function isCaseFrozen(caseId: number, guildId: Snowflake) {
-    const { frozen } = await prisma.punishment.findUnique({ where: { guildId_caseId: { guildId, caseId }}}) ?? { frozen: false };
+    const { frozen } = await prisma.infraction.findUnique({ where: { guildId_caseId: { guildId, caseId }}}) ?? { frozen: false };
 
     return frozen;
 }
@@ -66,7 +66,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
 
     const cid = await getCaseId(guild.id);
 
-    const punishment = await prisma.punishment.create({ 
+    const infraction = await prisma.infraction.create({ 
         data: { 
             ...data,
             duration: data.duration ? Math.ceil(data.duration / Time.Second) : null,
@@ -77,27 +77,27 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         }
     });
 
-    // If the punishment has a duration
-    // Extend the length of the punishment if it already exists and update the data to match the new case
+    // If the infraction has a duration
+    // Extend the length of the infraction if it already exists and update the data to match the new case
     // Else create a new job for it and then do it
     if(data.duration) {
-        const key = `punishment-jid-${data.action === "VMute" ? "VDeafen" : data.action}-${data.userId}`;
+        const key = `infraction-jid-${data.action === "VMute" ? "VDeafen" : data.action}-${data.userId}`;
 
-        // scoped by action so its only repeated punishments of same type updated
+        // scoped by action so its only repeated infractions of same type updated
         let jobId = await redis.get(key);
-        const job = jobId ? await Job.fromId(PunishmentScheduledTaskManager.queue, jobId) : null;
+        const job = jobId ? await Job.fromId(InfractionScheduledTaskManager.queue, jobId) : null;
 
         if(job)  {
             await job.changeDelay(data.duration);
-            await job.updateData(punishment);
+            await job.updateData(infraction);
         }
-        else jobId = (await PunishmentScheduledTaskManager.schedule(punishment, { delay: data.duration })).id!;
+        else jobId = (await InfractionScheduledTaskManager.schedule(infraction, { delay: data.duration })).id!;
 
         await redis.setex(key, Math.ceil(data.duration / Time.Second), jobId!);
     }
-    const embed = await postModLogMessage(guild, { iconUrl: data.moderatorIconUrl, username: data.moderatorName, id: data.moderatorId }, punishment);
+    const embed = await postModLogMessage(guild, { iconUrl: data.moderatorIconUrl, username: data.moderatorName, id: data.moderatorId }, infraction);
 
-    if(dry) return [punishment, embed]; // Dry exits before executing moderation action
+    if(dry) return [infraction, embed]; // Dry exits before executing moderation action
 
     try {
         if(dm && data.action !== "Unban") {
@@ -130,8 +130,8 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         }
     } catch(error) {
         Sentry.captureException(error);
-        return [punishment, createErrorEmbed(error as Error)];
+        return [infraction, createErrorEmbed(error as Error)];
     }
 
-    return [punishment, embed];
+    return [infraction, embed];
 }

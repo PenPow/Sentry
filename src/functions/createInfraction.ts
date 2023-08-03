@@ -1,23 +1,23 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { prisma } from "../utilities/Prisma.js";
-import { PunishmentLock, createCase } from "../utilities/Punishments.js";
-import { NonTimedPunishments } from "../types/Punishment.js";
+import { InfractionLock, createCase } from "../utilities/Infractions.js";
+import { NonTimedInfractions } from "../types/Infraction.js";
 
-export async function createPunishment(interaction: ChatInputCommandInteraction<"cached">, type: NonTimedPunishments) {
+export async function createInfraction(interaction: ChatInputCommandInteraction<"cached">, type: NonTimedInfractions) {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", true);
     const dm = interaction.options.getBoolean("dm", false) ?? true;
 
     let reference = interaction.options.getInteger("reference", false);
     if(reference) {
-        const caseReference = await prisma.punishment.findUnique({ where: { guildId_caseId: { caseId: reference, guildId: interaction.guildId } }});
+        const caseReference = await prisma.infraction.findUnique({ where: { guildId_caseId: { caseId: reference, guildId: interaction.guildId } }});
 
         if(caseReference) reference = caseReference.id;
     }
 
     await interaction.deferReply();
 
-    await PunishmentLock.acquire(`punishment-${user.id}`, async () => {
+    await InfractionLock.acquire(`infraction-${user.id}`, async () => {
         const [, embed] = await createCase(interaction.guild, {
             guildId: interaction.guildId,
             reason,

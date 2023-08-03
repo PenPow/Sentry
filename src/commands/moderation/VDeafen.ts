@@ -13,7 +13,7 @@ import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermi
 import { Option } from "@sapphire/result";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
-import { createTimedPunishment } from "../../functions/createTimedPunishment.js";
+import { createTimedInfraction } from "../../functions/createTimedInfraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class VoiceDeafenCommand implements Command {
@@ -30,7 +30,7 @@ export default class VoiceDeafenCommand implements Command {
     }
 
     public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
-        return createTimedPunishment(interaction, "VDeafen");
+        return createTimedInfraction(interaction, "VDeafen");
     }
 
     public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
@@ -59,7 +59,7 @@ export default class VoiceDeafenCommand implements Command {
                     },
                     {
                         name: 'reason',
-                        description: 'The reason to attach to this punishment',
+                        description: 'The reason to attach to this infraction',
                         type: ApplicationCommandOptionType.String,
                         max_length: 500,
                         autocomplete: true,
@@ -67,12 +67,12 @@ export default class VoiceDeafenCommand implements Command {
                     },
                     {
                         name: 'dm',
-                        description: 'Message the user with details of their punishment',
+                        description: 'Message the user with details of their infraction',
                         type: ApplicationCommandOptionType.Boolean,
                     },
                     {
                         name: 'reference',
-                        description: 'Reference another case in this punishment',
+                        description: 'Reference another case in this infraction',
                         type: ApplicationCommandOptionType.Integer,
                         min_value: 1,
                         autocomplete: true,

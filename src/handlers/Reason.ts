@@ -4,8 +4,8 @@ import { clamp } from "../utilities/Clamp.js";
 const DEFAULT_REASONS = ["TOS Violation(s)", "NSFW", "Scam/Spam Account", "Harassment"]; // TODO: Expand to include more
 const REMOVAL_REASONS = ["Appeal Accepted"]; // TODO: Expand
 
-export function reasonAutocompleteHandler(option: AutocompleteFocusedOption, type: "Punishment" | "Removal" = "Punishment") {
-    const reasons = type === "Punishment" ? DEFAULT_REASONS : REMOVAL_REASONS;
+export function reasonAutocompleteHandler(option: AutocompleteFocusedOption, type: "Infraction" | "Removal" = "Infraction") {
+    const reasons = type === "Infraction" ? DEFAULT_REASONS : REMOVAL_REASONS;
     
     return option.value === ""
         ? reasons.map((reason) => ({

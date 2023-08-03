@@ -1,6 +1,6 @@
 import { AuditLogChange, AuditLogEvent, ClientEvents, Guild, GuildAuditLogsEntry } from "discord.js";
 import { Listener } from "../lib/framework/structures/Listener.js";
-import { createCase } from "../utilities/Punishments.js";
+import { createCase } from "../utilities/Infractions.js";
 
 export default class GuildAuditLogEntryCreateListener implements Listener<"guildAuditLogEntryCreate"> {
     public readonly event = "guildAuditLogEntryCreate";
@@ -38,7 +38,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
             moderatorId: moderator.id,
             moderatorName: moderator.username,
             moderatorIconUrl: moderator.displayAvatarURL(),
-            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Punishment)`,
+            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Infraction)`,
             action: 'Timeout',
             userId: user.id,
             userName: user.username
@@ -58,7 +58,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
             moderatorId: moderator.id,
             moderatorName: moderator.username,
             moderatorIconUrl: moderator.displayAvatarURL(),
-            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Punishment)`,
+            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Infraction)`,
             action: 'Untimeout',
             userId: user.id,
             userName: user.username
@@ -78,7 +78,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
             moderatorId: moderator.id,
             moderatorName: moderator.username,
             moderatorIconUrl: moderator.displayAvatarURL(),
-            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Punishment)`,
+            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Infraction)`,
             action: 'VMute',
             userId: user.id,
             userName: user.username
@@ -98,7 +98,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
             moderatorId: moderator.id,
             moderatorName: moderator.username,
             moderatorIconUrl: moderator.displayAvatarURL(),
-            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Punishment)`,
+            reason: `${entry.reason ?? 'No Reason Specified'} (Manual Infraction)`,
             action: 'VDeafen',
             userId: user.id,
             userName: user.username

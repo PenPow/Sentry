@@ -1,7 +1,7 @@
 import { Time } from "@sapphire/time-utilities";
 import { APIEmbed, APIEmbedAuthor, ChannelType, Guild, TextChannel, TimestampStyles, hyperlink, messageLink, time } from "discord.js";
-import { CaseWithReference, UserLike } from "../types/Punishment.js";
-import { prettifyCaseActionName, convertActionToColor } from "./Punishments.js";
+import { CaseWithReference, UserLike } from "../types/Infraction.js";
+import { prettifyCaseActionName, convertActionToColor } from "./Infractions.js";
 import { prisma } from "./Prisma.js";
 import * as Sentry from "@sentry/node";
 
@@ -79,7 +79,7 @@ export async function postModLogMessage(guild: Guild, moderator: UserLike, data:
     try {
         const message = await channel.send({ embeds: [embed] });
   
-        await prisma.punishment.update({ where: { id: data.id }, data: { modLogMessageId: message.id } });
+        await prisma.infraction.update({ where: { id: data.id }, data: { modLogMessageId: message.id } });
   
         return embed;
     } catch (error) {

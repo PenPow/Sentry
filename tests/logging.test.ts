@@ -1,13 +1,13 @@
 import { describe, test, expect, vi, afterAll, afterEach, beforeEach } from "vitest";
 import { ChannelType, Guild } from "discord.js";
 import { createEmbed, getGuildLogChannel } from "../src/utilities/Logging.js";
-import { CaseWithReference, UserLike } from "../src/types/Punishment.js";
+import { CaseWithReference, UserLike } from "../src/types/Infraction.js";
 import { Duration } from "@sapphire/time-utilities";
 
 vi.mock("../src/utilities/Prisma.ts", () => {
     return { 
         prisma: {
-            punishment: {
+            infraction: {
                 create: vi.fn(({ data }) => data)
             }
         }
@@ -26,8 +26,8 @@ vi.mock("ioredis", () => {
     return { Redis: vi.fn() };
 });
 
-vi.mock("../src/tasks/PunishmentExpiration.ts", () => {
-    return { PunishmentScheduledTaskManager: vi.fn() };
+vi.mock("../src/tasks/InfractionExpiration.ts", () => {
+    return { InfractionScheduledTaskManager: vi.fn() };
 });
 
 const fetchChannelStub = vi.fn(() => [
@@ -144,7 +144,7 @@ describe("Logging Utilities", () => {
             expect(fetchChannelStub).toBeCalledTimes(1);
         });
 
-        test("Creates Embed w/Frozen Punishment", async () => {
+        test("Creates Embed w/Frozen Infraction", async () => {
             const embed = await createEmbed(guildStub, moderator, { 
                 ...baseCaseData, 
                 frozen: true 

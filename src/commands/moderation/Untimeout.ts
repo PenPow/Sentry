@@ -13,7 +13,7 @@ import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermi
 import { Option } from "@sapphire/result";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
-import { createPunishment } from "../../functions/createPunishment.js";
+import { createInfraction } from "../../functions/createInfraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class UntimeoutCommand implements Command {
@@ -30,7 +30,7 @@ export default class UntimeoutCommand implements Command {
     }
 
     public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
-        return createPunishment(interaction, "Untimeout");
+        return createInfraction(interaction, "Untimeout");
     }
 
     public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {

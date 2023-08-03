@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, afterAll, afterEach, beforeEach } from "vitest";
-import { convertActionToColor, createCase, prettifyCaseActionName } from "../src/utilities/Punishments.js";
+import { convertActionToColor, createCase, prettifyCaseActionName } from "../src/utilities/Infractions.js";
 import { CaseAction } from "@prisma/client";
-import { Case, NonTimedPunishments } from "../src/types/Punishment.js";
+import { Case, NonTimedInfractions } from "../src/types/Infraction.js";
 import { Guild } from "discord.js";
 import { Duration, Time } from "@sapphire/time-utilities";
 
@@ -13,7 +13,7 @@ vi.stubGlobal("client", {
 vi.mock("../src/utilities/Prisma.ts", () => {
     return { 
         prisma: {
-            punishment: {
+            infraction: {
                 create: vi.fn(({ data }) => data)
             },
             guild: {
@@ -75,7 +75,7 @@ vi.mock("ioredis", () => {
         Redis: vi.fn(() => ({ 
             incr: vi.fn(() => 1),
             get: vi.fn((key: string) => {
-                const action = key.split('-')[2]! as Exclude<CaseAction, NonTimedPunishments>;
+                const action = key.split('-')[2]! as Exclude<CaseAction, NonTimedInfractions>;
             
                 if(action === "Warn") return "1";
                 else if(action === "Ban") return "2";
@@ -94,14 +94,14 @@ vi.mock("../src/functions/createErrorEmbed.ts", () => {
     return { createErrorEmbed: vi.fn(() => "error embed") };
 });
 
-vi.mock("../src/tasks/PunishmentExpiration.ts", () => {
-    return { PunishmentScheduledTaskManager: {
+vi.mock("../src/tasks/InfractionExpiration.ts", () => {
+    return { InfractionScheduledTaskManager: {
         schedule: vi.fn(),
     } };
 });
 
 vi.mock("../src/utilities/Logging.ts", () => {
-    return { postModLogMessage: vi.fn(() => "punishment embed") }; // stub it out, we already tested it
+    return { postModLogMessage: vi.fn(() => "infraction embed") }; // stub it out, we already tested it
 });
 
 vi.mock("bullmq", () => {
@@ -117,7 +117,7 @@ vi.mock("bullmq", () => {
     }};
 });
 
-describe("Punishment Utilities", () => {
+describe("Infractions", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
         vi.useFakeTimers();
@@ -169,7 +169,7 @@ describe("Punishment Utilities", () => {
     });
 
     describe("Case Action Names", () => {
-        test.each(["Warn", "Timeout", "Kick", "Softban", "Ban", "Unban", "Untimeout"])("Punishment of type %s returns itself", (action) => {
+        test.each(["Warn", "Timeout", "Kick", "Softban", "Ban", "Unban", "Untimeout"])("Infraction of type %s returns itself", (action) => {
             expect(prettifyCaseActionName(action as CaseAction)).toStrictEqual(action);
         });
 
@@ -218,198 +218,198 @@ describe("Punishment Utilities", () => {
             }
         } as unknown as Guild;
 
-        test("Creates Warn Punishment", async () => {
+        test("Creates Warn Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Warn'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
         });
 
-        test("Created Timed Warn Punishment", async () => {
+        test("Created Timed Warn Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Warn',
                 duration: new Duration("27h59m59s").offset
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
                 duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
         });
 
-        test("Creates Timeout Punishment", async () => {
+        test("Creates Timeout Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Timeout',
                 duration: new Duration("27h59m59s").offset
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
                 duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates VMute Punishment", async () => {
+        test("Creates VMute Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'VMute'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates Timed VMute Punishment", async () => {
+        test("Creates Timed VMute Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'VMute',
                 duration: new Duration("27h59m59s").offset
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
                 duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates VDeafen Punishment", async () => {
+        test("Creates VDeafen Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'VDeafen'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates Timed VDeafen Punishment", async () => {
+        test("Creates Timed VDeafen Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'VDeafen',
                 duration: new Duration("27h59m59s").offset
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
                 duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates Kick Punishment", async () => {
+        test("Creates Kick Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Kick'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(kickFn).toBeCalledTimes(1);
         });
 
-        test("Creates Softban Punishment", async () => {
+        test("Creates Softban Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Softban'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(banFn).toBeCalledTimes(1);
             expect(unbanFn).toBeCalledTimes(1);
         });
 
-        test("Creates Ban Punishment", async () => {
+        test("Creates Ban Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Ban'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
             expect(banFn).toBeCalledTimes(1);
@@ -421,34 +421,34 @@ describe("Punishment Utilities", () => {
                 action: 'Unban'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).not.toBeCalled();
             expect(unbanFn).toBeCalledTimes(1);
         });
 
-        test("Can Freeze Punishment on Creation", async () => {
+        test("Can Freeze Infraction on Creation", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Warn',
                 frozen: true
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
         });
@@ -460,32 +460,32 @@ describe("Punishment Utilities", () => {
                 referenceId: 2
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).toBeCalledTimes(1);
         });
 
-        test("Dry Punishments Exits Early", async () => {
+        test("Dry Infractions Exits Early", async () => {
             const caseData: Case = {
                 ...baseCaseData,
                 action: 'Ban'
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: true });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: true });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).not.toBeCalled();
             expect(banFn).not.toBeCalled();
@@ -498,14 +498,14 @@ describe("Punishment Utilities", () => {
                 frozen: true
             };
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: false, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: false, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });
 
-            expect(embed).toStrictEqual("punishment embed");
+            expect(embed).toStrictEqual("infraction embed");
 
             expect(sendFn).not.toBeCalled();
         });
@@ -521,9 +521,9 @@ describe("Punishment Utilities", () => {
                 throw new Error("Failed to Ban"); 
             });
 
-            const [punishment, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
 
-            expect(punishment).toStrictEqual({
+            expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
             });

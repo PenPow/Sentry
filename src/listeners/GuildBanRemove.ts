@@ -1,6 +1,6 @@
 import { ClientEvents } from "discord.js";
 import { Listener } from "../lib/framework/structures/Listener.js";
-import { PunishmentLock, createCase } from "../utilities/Punishments.js";
+import { InfractionLock, createCase } from "../utilities/Infractions.js";
 
 export default class GuildBanRemoveListener implements Listener<"guildBanRemove"> {
     public readonly event = "guildBanRemove";
@@ -9,13 +9,13 @@ export default class GuildBanRemoveListener implements Listener<"guildBanRemove"
     public async run([ban]: ClientEvents["guildBanRemove"]) {
         const { user } = ban;
 
-        await PunishmentLock.acquire(`punishment-${user.id}`, async () => {
+        await InfractionLock.acquire(`infraction-${user.id}`, async () => {
             await createCase(ban.guild, {
                 guildId: ban.guild.id,
-                reason: `Manual Punishment`,
+                reason: `Manual Infraction`,
                 duration: null,
                 moderatorId: ban.client.user.id,
-                moderatorName: "Manual Punishment",
+                moderatorName: "Manual Infraction",
                 moderatorIconUrl: ban.client.user.displayAvatarURL(),
                 action: "Unban",
                 userId: user.id,
