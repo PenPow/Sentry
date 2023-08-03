@@ -29,7 +29,7 @@ export async function createInfraction(interaction: ChatInputCommandInteraction<
             userId: user.id,
             userName: user.username,
             referenceId: reference
-        }, { dm: ["Unban", "Untimeout"].includes(type) ? dm : false , dry: false });
+        }, { dm: ["Unban", "Untimeout", "VUnmute", "Undeafen"].includes(type) ? dm : false , dry: false });
 
         await interaction.editReply({ embeds: [embed ]});
     });

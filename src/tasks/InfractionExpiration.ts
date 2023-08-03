@@ -24,6 +24,34 @@ class InfractionTaskManager extends ScheduledTaskManager<CaseWithReference, "inf
             }, { dm: false, dry: false });
         } else if(payload.action === "Deafen" || payload.action === "VMute") {
             await guild.members.edit(payload.userId, { mute: false, deaf: false });
+
+            if(payload.action === "VMute") {
+                await createCase(guild, {
+                    reason: "Voice Mute expired",
+                    duration: null,
+                    guildId: guild.id,
+                    moderatorId: client.user!.id,
+                    moderatorName: client.user!.username,
+                    moderatorIconUrl: client.user!.displayAvatarURL(),
+                    action: "VUnmute",
+                    userId: payload.userId,
+                    userName: payload.userName,
+                    referenceId: payload.caseId,
+                }, { dm: false, dry: true });
+            } else {
+                await createCase(guild, {
+                    reason: "Voice Deafen expired",
+                    duration: null,
+                    guildId: guild.id,
+                    moderatorId: client.user!.id,
+                    moderatorName: client.user!.username,
+                    moderatorIconUrl: client.user!.displayAvatarURL(),
+                    action: "Undeafen",
+                    userId: payload.userId,
+                    userName: payload.userName,
+                    referenceId: payload.caseId,
+                }, { dm: false, dry: true });
+            }
         } else if(payload.action === "Timeout") {
             await createCase(guild, {
                 reason: "Timeout expired",
