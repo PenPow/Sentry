@@ -24,7 +24,7 @@ enum CaseAction {
   Unban
   Untimeout
   VMute
-  VDeafen
+  Deafen
 }
 
 model Infraction {

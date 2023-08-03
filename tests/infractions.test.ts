@@ -80,7 +80,7 @@ vi.mock("ioredis", () => {
                 if(action === "Warn") return "1";
                 else if(action === "Ban") return "2";
                 else if(action === "Timeout") return "3";
-                else if(action === "VDeafen") return "4";
+                else if(action === "Deafen") return "4";
                 else if(action === "VMute") return "5";
             
                 throw new Error("Invalid Action");
@@ -147,8 +147,8 @@ describe("Infractions", () => {
             expect(convertActionToColor("VMute")).toStrictEqual(0xffca3a);
         });
 
-        test("VDeafens are Yellow", () => {
-            expect(convertActionToColor("VDeafen")).toStrictEqual(0xffca3a);
+        test("Deafens are Yellow", () => {
+            expect(convertActionToColor("Deafen")).toStrictEqual(0xffca3a);
         });
 
         test("Kicks are Orange", () => {
@@ -169,16 +169,12 @@ describe("Infractions", () => {
     });
 
     describe("Case Action Names", () => {
-        test.each(["Warn", "Timeout", "Kick", "Softban", "Ban", "Unban", "Untimeout"])("Infraction of type %s returns itself", (action) => {
+        test.each(["Warn", "Timeout", "Deafen", "Kick", "Softban", "Ban", "Unban", "Untimeout"])("Infraction of type %s returns itself", (action) => {
             expect(prettifyCaseActionName(action as CaseAction)).toStrictEqual(action);
         });
 
         test("VMutes return Voice Mute", () => {
             expect(prettifyCaseActionName("VMute")).toStrictEqual("Voice Mute");
-        });
-
-        test("VDeafens return Voice Deafen", () => {
-            expect(prettifyCaseActionName("VDeafen")).toStrictEqual("Voice Deafen");
         });
     });
 
@@ -317,10 +313,10 @@ describe("Infractions", () => {
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates VDeafen Infraction", async () => {
+        test("Creates Deafen Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
-                action: 'VDeafen'
+                action: 'Deafen'
             };
 
             const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
@@ -336,10 +332,10 @@ describe("Infractions", () => {
             expect(memberEditFn).toBeCalledTimes(1);
         });
 
-        test("Creates Timed VDeafen Infraction", async () => {
+        test("Creates Timed Deafen Infraction", async () => {
             const caseData: Case = {
                 ...baseCaseData,
-                action: 'VDeafen',
+                action: 'Deafen',
                 duration: new Duration("27h59m59s").offset
             };
 

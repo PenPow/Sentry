@@ -36,7 +36,7 @@ export function convertActionToColor(action: CaseAction): number {
     case "Warn":
     case "Timeout":
     case "VMute":
-    case "VDeafen":
+    case "Deafen":
         return 0xffca3a;
     case "Kick":
     case "Softban":
@@ -54,8 +54,6 @@ export function prettifyCaseActionName(action: CaseAction) {
     switch (action) {
     case "VMute":
         return "Voice Mute";
-    case "VDeafen":
-        return "Voice Deafen";
     default:
         return action;
     }
@@ -81,7 +79,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
     // Extend the length of the infraction if it already exists and update the data to match the new case
     // Else create a new job for it and then do it
     if(data.duration) {
-        const key = `infraction-jid-${data.action === "VMute" ? "VDeafen" : data.action}-${data.userId}`;
+        const key = `infraction-jid-${data.action === "VMute" ? "Deafen" : data.action}-${data.userId}`;
 
         // scoped by action so its only repeated infractions of same type updated
         let jobId = await redis.get(key);
@@ -123,7 +121,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
             await guild.bans.remove(data.userId, data.reason);
         } else if(data.action === "Untimeout") {
             await guild.members.edit(data.userId, { communicationDisabledUntil: null });
-        } else if(data.action === "VDeafen") {
+        } else if(data.action === "Deafen") {
             await guild.members.edit(data.userId, { mute: true, deaf: true });
         } else if(data.action === "VMute") {
             await guild.members.edit(data.userId, { mute: true });

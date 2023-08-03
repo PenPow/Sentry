@@ -22,7 +22,7 @@ class InfractionTaskManager extends ScheduledTaskManager<CaseWithReference, "inf
                 userName: payload.userName,
                 referenceId: payload.caseId,
             }, { dm: false, dry: false });
-        } else if(payload.action === "VDeafen" || payload.action === "VMute") {
+        } else if(payload.action === "Deafen" || payload.action === "VMute") {
             await guild.members.edit(payload.userId, { mute: false, deaf: false });
         } else if(payload.action === "Timeout") {
             await createCase(guild, {

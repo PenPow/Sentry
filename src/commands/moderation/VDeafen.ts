@@ -30,7 +30,7 @@ export default class VoiceDeafenCommand implements Command {
     }
 
     public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
-        return createTimedInfraction(interaction, "VDeafen");
+        return createTimedInfraction(interaction, "Deafen");
     }
 
     public async autocompleteRun(interaction: AutocompleteInteraction<"cached">) {
@@ -46,8 +46,8 @@ export default class VoiceDeafenCommand implements Command {
     public toJSON(): RESTPostAPIApplicationCommandsJSONBody[] {
         return [
             {
-                name: 'vdeafen',
-                description: 'Deafen a user in voice channels',
+                name: 'deafen',
+                description: 'Deafen (and mute) a user in voice channels',
                 dm_permission: false,
                 default_member_permissions: PermissionsValidator.parse(new PermissionsBitField(PermissionsBitField.Flags.ModerateMembers).valueOf()),
                 options: [

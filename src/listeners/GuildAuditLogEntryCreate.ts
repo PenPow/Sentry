@@ -18,7 +18,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
             const muteChange = entry.changes.find((change) => change.key === "mute");
             const deafChange = entry.changes.find((change) => change.key === "deaf");
             if(deafChange) {
-                if(deafChange.new === true) await this.handleVDeafen(entry as GuildAuditLogsEntry<AuditLogEvent.MemberUpdate>,  guild);
+                if(deafChange.new === true) await this.handleDeafen(entry as GuildAuditLogsEntry<AuditLogEvent.MemberUpdate>,  guild);
             } else if (muteChange) {
                 if(muteChange.new === true) await this.handleVMute(entry as GuildAuditLogsEntry<AuditLogEvent.MemberUpdate>, guild);
             }
@@ -85,7 +85,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
         }, { dm: false, dry: true });
     }
 
-    private async handleVDeafen(entry: GuildAuditLogsEntry<AuditLogEvent.MemberUpdate>, guild: Guild) {
+    private async handleDeafen(entry: GuildAuditLogsEntry<AuditLogEvent.MemberUpdate>, guild: Guild) {
         const moderator = entry.executor ?? await guild.client.users.fetch(entry.executorId!);
         if(!moderator || moderator.bot) return;
 
@@ -99,7 +99,7 @@ export default class GuildAuditLogEntryCreateListener implements Listener<"guild
             moderatorName: moderator.username,
             moderatorIconUrl: moderator.displayAvatarURL(),
             reason: `${entry.reason ?? 'No Reason Specified'} (Manual Infraction)`,
-            action: 'VDeafen',
+            action: 'Deafen',
             userId: user.id,
             userName: user.username
         }, { dm: false, dry: true });

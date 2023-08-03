@@ -235,7 +235,7 @@ export default class CaseCommand implements Command {
 
             modCase.duration = expiration.offset / Time.Second;
 
-            const key = `infraction-jid-${modCase.action === "VMute" ? "VDeafen" : modCase.action}-${modCase.userId}`;
+            const key = `infraction-jid-${modCase.action === "VMute" ? "Deafen" : modCase.action}-${modCase.userId}`;
             
             let jobId = await redis.get(key);
             const job = jobId ? await Job.fromId(InfractionScheduledTaskManager.queue, jobId) : null;
