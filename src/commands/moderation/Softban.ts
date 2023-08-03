@@ -18,10 +18,10 @@ import { Command, PreconditionOption } from "../../lib/framework/structures/Comm
 import { PermissionsValidator } from "../../utilities/Permissions.js";
 import { permissionsV1 } from "../../preconditions/SentryRequiresModerationPermissions.js";
 import { Option } from "@sapphire/result";
-import { PunishmentLock, createCase } from "../../utilities/Punishments.js";
+import { InfractionLock, createCase } from "../../utilities/Infractions.js";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
-import { createPunishment } from "../../functions/createPunishment.js";
+import { createInfraction } from "../../functions/createInfraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class SoftbanCommand implements Command {
@@ -38,7 +38,7 @@ export default class SoftbanCommand implements Command {
     }
 
     public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
-        return createPunishment(interaction, "Softban");
+        return createInfraction(interaction, "Softban");
     }
 
     public async userContextMenuRun(interaction: UserContextMenuCommandInteraction<"cached">) {
@@ -67,7 +67,7 @@ export default class SoftbanCommand implements Command {
 
         await interaction.deferReply();
 
-        await PunishmentLock.acquire(`punishment-${userId}`, async () => {
+        await InfractionLock.acquire(`infraction-${userId}`, async () => {
             const [, embed] = await createCase(interaction.guild, {
                 guildId: interaction.guildId,
                 reason: interaction.fields.getTextInputValue("reason"),
@@ -111,7 +111,7 @@ export default class SoftbanCommand implements Command {
                     },
                     {
                         name: 'reason',
-                        description: 'The reason for adding this punishment',
+                        description: 'The reason for adding this infraction',
                         type: ApplicationCommandOptionType.String,
                         max_length: 500,
                         autocomplete: true,
@@ -119,12 +119,12 @@ export default class SoftbanCommand implements Command {
                     },
                     {
                         name: 'dm',
-                        description: 'Message the user with details of their punishment',
+                        description: 'Message the user with details of their infraction',
                         type: ApplicationCommandOptionType.Boolean,
                     },
                     {
                         name: 'reference',
-                        description: 'Reference another case in this punishment',
+                        description: 'Reference another case in this infraction',
                         type: ApplicationCommandOptionType.Integer,
                         min_value: 1,
                         autocomplete: true,

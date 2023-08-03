@@ -16,7 +16,7 @@ import { prisma } from "../../utilities/Prisma.js";
 import { PaginatedMessage } from "@sapphire/discord.js-utilities";
 import { clamp } from "../../utilities/Clamp.js";
 import { createEmbed } from "../../utilities/Logging.js";
-import { UserLike } from "../../types/Punishment.js";
+import { UserLike } from "../../types/Infraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class HistoryCommand implements Command {

@@ -1,14 +1,14 @@
 import { ScheduledTaskManager } from "../lib/framework/structures/ScheduledTasks.js";
-import { CaseWithReference } from "../types/Punishment.js";
+import { CaseWithReference } from "../types/Infraction.js";
 import { prisma } from "../utilities/Prisma.js";
-import { createCase } from "../utilities/Punishments.js";
+import { createCase } from "../utilities/Infractions.js";
 
-class PunishmentTaskManager extends ScheduledTaskManager<CaseWithReference, "punishment-expiration"> {
+class InfractionTaskManager extends ScheduledTaskManager<CaseWithReference, "infraction-expiration"> {
     protected override async run(payload: CaseWithReference): Promise<void> {
         const guild = await client.guilds.fetch(payload.guildId);
 
         if(payload.action === "Warn") {
-            await prisma.punishment.delete({ where: { id: payload.id } });
+            await prisma.infraction.delete({ where: { id: payload.id } });
         } else if(payload.action === "Ban") {
             await createCase(guild, {
                 reason: "Timed-ban expired",
@@ -41,4 +41,4 @@ class PunishmentTaskManager extends ScheduledTaskManager<CaseWithReference, "pun
     }
 }
 
-export const PunishmentScheduledTaskManager = new PunishmentTaskManager("punishment-expiration");
+export const InfractionScheduledTaskManager = new InfractionTaskManager("infraction-expiration");

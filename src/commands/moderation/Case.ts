@@ -14,13 +14,13 @@ import { Option } from "@sapphire/result";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { prisma } from "../../utilities/Prisma.js";
 import { createEmbed, postModLogMessage } from "../../utilities/Logging.js";
-import { PunishmentLock } from "../../utilities/Punishments.js";
+import { InfractionLock } from "../../utilities/Infractions.js";
 import { Duration, Time } from "@sapphire/time-utilities";
 import { redis } from "../../utilities/Redis.js";
-import { PunishmentScheduledTaskManager } from "../../tasks/PunishmentExpiration.js";
+import { InfractionScheduledTaskManager } from "../../tasks/InfractionExpiration.js";
 import { Job } from "bullmq";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
-import { UserLike } from "../../types/Punishment.js";
+import { UserLike } from "../../types/Infraction.js";
 import { InternalError } from "../../lib/framework/structures/errors/InternalError.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
@@ -148,7 +148,7 @@ export default class CaseCommand implements Command {
         const caseNo = interaction.options.getInteger("case", true);
 
         // eslint-disable-next-line max-len
-        const modCase = await prisma.punishment.findUnique({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, include: { caseReference: true }});
+        const modCase = await prisma.infraction.findUnique({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, include: { caseReference: true }});
 
         if (!modCase) {
             const embed: APIEmbed = {
@@ -169,7 +169,7 @@ export default class CaseCommand implements Command {
         const caseNo = interaction.options.getInteger("case", true);
 
         // eslint-disable-next-line max-len
-        const modCase = await prisma.punishment.findUnique({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, include: { caseReference: true }});
+        const modCase = await prisma.infraction.findUnique({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, include: { caseReference: true }});
 
         if (!modCase) {
             const embed: APIEmbed = {
@@ -198,8 +198,8 @@ export default class CaseCommand implements Command {
 
             modCase.reason = reason;
 
-            return PunishmentLock.acquire(`punishment-${modCase.userId}`, async () => {
-                await prisma.punishment.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { reason } });
+            return InfractionLock.acquire(`infraction-${modCase.userId}`, async () => {
+                await prisma.infraction.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { reason } });
         
                 const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
                 const embed = await postModLogMessage(interaction.guild, moderator, modCase);
@@ -235,22 +235,22 @@ export default class CaseCommand implements Command {
 
             modCase.duration = expiration.offset / Time.Second;
 
-            const key = `punishment-jid-${modCase.action === "VMute" ? "VDeafen" : modCase.action}-${modCase.userId}`;
+            const key = `infraction-jid-${modCase.action === "VMute" ? "VDeafen" : modCase.action}-${modCase.userId}`;
             
             let jobId = await redis.get(key);
-            const job = jobId ? await Job.fromId(PunishmentScheduledTaskManager.queue, jobId) : null;
+            const job = jobId ? await Job.fromId(InfractionScheduledTaskManager.queue, jobId) : null;
 
             if(job)  {
                 await job.changeDelay(modCase.duration * Time.Second);
                 await job.updateData(modCase);
             }
-            else jobId = (await PunishmentScheduledTaskManager.schedule(modCase, { delay: modCase.duration * Time.Second  })).id!;
+            else jobId = (await InfractionScheduledTaskManager.schedule(modCase, { delay: modCase.duration * Time.Second  })).id!;
 
             await redis.setex(key, modCase.duration, jobId!);
 
-            return PunishmentLock.acquire(`punishment-${modCase.userId}`, async () => {
+            return InfractionLock.acquire(`infraction-${modCase.userId}`, async () => {
                 // eslint-disable-next-line max-len
-                await prisma.punishment.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { duration: modCase.duration } });
+                await prisma.infraction.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { duration: modCase.duration } });
         
                 if(modCase.action === "Timeout") {
                     // eslint-disable-next-line max-len
@@ -270,7 +270,7 @@ export default class CaseCommand implements Command {
         const caseNo = interaction.options.getInteger("case", true);
 
         // eslint-disable-next-line max-len
-        const modCase = await prisma.punishment.findUnique({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, include: { caseReference: true }});
+        const modCase = await prisma.infraction.findUnique({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, include: { caseReference: true }});
 
         if (!modCase) {
             const embed: APIEmbed = {
@@ -292,8 +292,8 @@ export default class CaseCommand implements Command {
 
         modCase.frozen = true;
 
-        return PunishmentLock.acquire(`punishment-${modCase.userId}`, async () => {
-            await prisma.punishment.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { frozen: true } });
+        return InfractionLock.acquire(`infraction-${modCase.userId}`, async () => {
+            await prisma.infraction.update({ where: { guildId_caseId: { guildId: interaction.guildId, caseId: caseNo }}, data: { frozen: true } });
     
             const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
             const embed = await postModLogMessage(interaction.guild, moderator, modCase);
