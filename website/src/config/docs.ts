@@ -26,7 +26,7 @@ export const docsConfig: DocsConfig = {
 		items: [
 		  {
 			title: "Frozen Punishments",
-			href: "/docs/concepts/frozen-punishments",
+			href: "/docs/concepts/frozen-infractions",
 		  },
 		  {
 			  title: "Permissions V2",
