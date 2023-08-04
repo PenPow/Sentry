@@ -80,6 +80,8 @@ describe("Logging Utilities", () => {
             userName: "Test Subject",
             referenceId: null,
             caseReference: null,
+            expiration: null,
+            overturned: false,
             frozen: false
         };
 

@@ -1,5 +1,5 @@
 import AsyncLock from "async-lock";
-import { APIEmbed, ActionRowBuilder, ButtonBuilder, ButtonStyle, Guild, Snowflake } from "discord.js";
+import { APIEmbed, ActionRowBuilder, ButtonBuilder, ButtonStyle, DiscordAPIError, Guild, Snowflake } from "discord.js";
 import { Case, CaseWithReference } from "../types/Infraction.js";
 import { prisma } from "./Prisma.js";
 import { Time } from "@sapphire/time-utilities";
@@ -73,6 +73,7 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
         data: { 
             ...data,
             duration: data.duration ? Math.ceil(data.duration / Time.Second) : null,
+            expiration: data.duration ? new Date(Date.now() + data.duration) : null,
             caseId: cid
         },
         include: {
@@ -136,6 +137,8 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
             await guild.members.edit(data.userId, { mute: false });
         } else if(data.action !== "Warn") throw new InternalError("Unknown Infraction Type", `The infraction type ${data.action} does not execute any actions`);
     } catch(error) {
+        if(error instanceof DiscordAPIError) return [infraction, createErrorEmbed(new InternalError(error.message))];
+        
         Sentry.captureException(error);
         return [infraction, createErrorEmbed(error as Error)];
     }
