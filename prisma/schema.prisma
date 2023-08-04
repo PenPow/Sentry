@@ -25,6 +25,8 @@ enum CaseAction {
   Untimeout
   VMute
   Deafen
+  VUnmute
+  Undeafen
 }
 
 model Infraction {
