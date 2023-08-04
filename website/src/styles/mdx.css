@@ -1,0 +1,7 @@
+hr {
+	@apply dark:border-muted !important;
+}
+
+.mdx :is(h1, h2) {
+	@apply dark:border-muted pb-4 border-b-2 !important;
+}

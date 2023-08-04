@@ -1,10 +1,8 @@
-.DS_Store
+# Sentry Auth Token
+.sentryclirc
+
 node_modules
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-!.env.example
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+dist
+.next
+build
+.contentlayer
