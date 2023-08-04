@@ -10,6 +10,7 @@ import { postModLogMessage } from "./Logging.js";
 import { Job } from "bullmq";
 import * as Sentry from "@sentry/node";
 import { createErrorEmbed } from "../functions/createErrorEmbed.js";
+import { InternalError } from "../lib/framework/structures/errors/InternalError.js";
 
 export const InfractionLock = new AsyncLock();
 
@@ -42,6 +43,8 @@ export function convertActionToColor(action: CaseAction): number {
     case "Softban":
         return 0xffa05e;
     case "Untimeout":
+    case "VUnmute":
+    case "Undeafen":
         return 0x1e1e21;
     case "Unban":
         return 0x8ac926;
@@ -54,6 +57,8 @@ export function prettifyCaseActionName(action: CaseAction) {
     switch (action) {
     case "VMute":
         return "Voice Mute";
+    case "VUnmute":
+        return "Remove Voice Mute";
     default:
         return action;
     }
@@ -125,7 +130,11 @@ export async function createCase(guild: Guild, data: Case, { dm, dry } = { dm: t
             await guild.members.edit(data.userId, { mute: true, deaf: true });
         } else if(data.action === "VMute") {
             await guild.members.edit(data.userId, { mute: true });
-        }
+        } else if(data.action === "Undeafen") {
+            await guild.members.edit(data.userId, { mute: false, deaf: false });
+        } else if(data.action === "VUnmute") {
+            await guild.members.edit(data.userId, { mute: false });
+        } else if(data.action !== "Warn") throw new InternalError("Unknown Infraction Type", `The infraction type ${data.action} does not execute any actions`);
     } catch(error) {
         Sentry.captureException(error);
         return [infraction, createErrorEmbed(error as Error)];
