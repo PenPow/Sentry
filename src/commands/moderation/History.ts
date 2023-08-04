@@ -16,7 +16,6 @@ import { prisma } from "../../utilities/Prisma.js";
 import { PaginatedMessage } from "@sapphire/discord.js-utilities";
 import { clamp } from "../../utilities/Clamp.js";
 import { createEmbed } from "../../utilities/Logging.js";
-import { UserLike } from "../../types/Infraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 
 export default class HistoryCommand implements Command {
@@ -75,13 +74,15 @@ export default class HistoryCommand implements Command {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
+        const embeds = clamp(guild.cases, 24).map((modCase) => createEmbed(
+            interaction.guild,
+            { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl }, 
+            modCase
+        ));
+
         const message = new PaginatedMessage();
-
-        for(const modCase of clamp(guild.cases, 24)) {
-            const moderator: UserLike = { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl };
-
-            message.addPageEmbed(new EmbedBuilder(await createEmbed(interaction.guild, moderator, modCase )));
-        }
+        // NOTE: addPageEmbeds doesnt work... don't know why
+        (await Promise.all(embeds)).map((embed) => new EmbedBuilder(embed)).forEach((embed) => message.addPageEmbed(embed));
 
         if (guild.cases.length >= 25) {
             message.addPageEmbed(
