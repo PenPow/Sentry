@@ -5,6 +5,7 @@ import {
     CacheType, 
     ChatInputCommandInteraction, 
     CommandInteraction,
+    EmbedBuilder,
     PermissionsBitField, 
     RESTPostAPIApplicationCommandsJSONBody, 
 } from "discord.js";
@@ -19,10 +20,12 @@ import { Duration, Time } from "@sapphire/time-utilities";
 import { redis } from "../../utilities/Redis.js";
 import { InfractionScheduledTaskManager } from "../../tasks/InfractionExpiration.js";
 import { Job } from "bullmq";
+import { clamp } from "../../utilities/Clamp.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
 import { UserLike } from "../../types/Infraction.js";
 import { InternalError } from "../../lib/framework/structures/errors/InternalError.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
+import { PaginatedMessage } from "@sapphire/discord.js-utilities";
 
 // ^ god these imports are a mess
 
@@ -34,10 +37,13 @@ export default class CaseCommand implements Command {
     }
 
     public chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
-        const subcommand = (interaction.options.getSubcommandGroup(false) ?? interaction.options.getSubcommand(true)) as "lookup" | "edit" | "freeze";
+        // eslint-disable-next-line max-len
+        const subcommand = (interaction.options.getSubcommandGroup(false) ?? interaction.options.getSubcommand(true)) as "lookup" | "search" | "edit" | "freeze";
 
         if(subcommand === "lookup") {
             return this.lookupCase(interaction);
+        } else if (subcommand === "search") {
+            return this.searchCase(interaction);
         } else if(subcommand === "edit") {
             return this.editCase(interaction);
         } else if(subcommand === "freeze") {
@@ -76,6 +82,17 @@ export default class CaseCommand implements Command {
                             required: true,
                             autocomplete: true,
                             min_value: 1
+                        }]
+                    },
+                    {
+                        name: 'search',
+                        description: 'Search for cases made by a certain moderator',
+                        type: ApplicationCommandOptionType.Subcommand,
+                        options: [{
+                            name: 'moderator',
+                            description: 'The moderator to search cases for',
+                            type: ApplicationCommandOptionType.User,
+                            required: true,
                         }]
                     },
                     {
@@ -163,6 +180,47 @@ export default class CaseCommand implements Command {
     
         const embed = await createEmbed(interaction.guild, moderator, modCase);
         return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    private async searchCase(interaction: ChatInputCommandInteraction<"cached">) {
+        const moderator = interaction.options.getUser("moderator", true);
+
+        const cases = await prisma.infraction.findMany({ 
+            include: { caseReference: true }, 
+            where: { guildId: interaction.guildId, moderatorId: moderator.id }
+        }) ?? [];
+
+        if(!cases.length)  {
+            const embed: APIEmbed = {
+                title: "No Cases Found",
+                color: 0xea6e72,
+            };
+       
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        const embeds = clamp(cases, 24).map((modCase) => createEmbed(
+            interaction.guild,
+            { username: modCase.moderatorName, id: modCase.moderatorId, iconUrl: modCase.moderatorIconUrl }, 
+            modCase
+        ));
+
+        const message = new PaginatedMessage();
+        // NOTE: addPageEmbeds doesnt work... don't know why
+        (await Promise.all(embeds)).map((embed) => new EmbedBuilder(embed)).forEach((embed) => message.addPageEmbed(embed));
+
+        if (cases.length >= 25) {
+            message.addPageEmbed(
+                new EmbedBuilder({
+                    title: `And ${cases.length - 25} more case${cases.length - 25 === 1 ? "" : "s"}...`,
+                    color: 0xea6e72,
+                })
+            );
+        }
+
+        await interaction.deferReply({ ephemeral: true }); // makes paginator ephemeral
+
+        return message.run(interaction, interaction.user);
     }
 
     private async editCase(interaction: ChatInputCommandInteraction<"cached">) {
