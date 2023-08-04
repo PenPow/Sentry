@@ -1,8 +1,8 @@
-import { AutocompleteFocusedOption, Snowflake } from "discord.js";
+import { ApplicationCommandOptionChoiceData, AutocompleteFocusedOption, Snowflake } from "discord.js";
 import { clamp } from "../utilities/Clamp.js";
 import { prisma } from "../utilities/Prisma.js";
 
-export async function referenceAutocompleteHandler(guildId: Snowflake, option: AutocompleteFocusedOption) {
+export async function referenceAutocompleteHandler(guildId: Snowflake, option: AutocompleteFocusedOption): Promise<ApplicationCommandOptionChoiceData[]> {
     const cases = (await prisma.guild.findUnique({ where: { id: guildId }, include: { cases: true }}))?.cases ?? [];
     
     return cases.length === 0

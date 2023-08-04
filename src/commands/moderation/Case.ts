@@ -26,6 +26,7 @@ import { UserLike } from "../../types/Infraction.js";
 import { InternalError } from "../../lib/framework/structures/errors/InternalError.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
 import { PaginatedMessage } from "@sapphire/discord.js-utilities";
+import { durationAutocompleteHandler } from "../../handlers/Duration.js";
 
 // ^ god these imports are a mess
 
@@ -60,6 +61,8 @@ export default class CaseCommand implements Command {
             return interaction.respond(reasonAutocompleteHandler(option));
         } else if(option.name === "case") {
             return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        } else if (option.name === "new-duration") {
+            return interaction.respond(durationAutocompleteHandler(option));
         }
     }
 
@@ -139,7 +142,8 @@ export default class CaseCommand implements Command {
                                         name: 'new-duration',
                                         description: 'The new duration for the case (pass in a duration string)',
                                         type: ApplicationCommandOptionType.String,
-                                        required: true
+                                        required: true,
+                                        autocomplete: true
                                     }]
                             }
                         ]

@@ -13,6 +13,7 @@ import { createErrorEmbed } from "../../functions/createErrorEmbed.js";
 import { UserError } from "../../lib/framework/structures/errors/UserError.js";
 import { PermissionsValidator } from "../../utilities/Permissions.js";
 import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
+import { durationAutocompleteHandler } from "../../handlers/Duration.js";
 
 export default class AboutCommand implements Command {
     public async chatInputRun(interaction: ChatInputCommandInteraction<"cached">) {
@@ -29,7 +30,7 @@ export default class AboutCommand implements Command {
             ChannelType.GuildAnnouncement
         ]) ?? interaction.channel!;
 
-        if(Number.isNaN(duration.offset) || duration.offset < 0 || duration.fromNow.getTime() >= new Date(Date.now() + (6 * Time.Hour)).getTime()) {
+        if(Number.isNaN(duration.offset) || duration.offset < 0 || duration.fromNow.getTime() > new Date(Date.now() + (6 * Time.Hour)).getTime()) {
             return interaction.reply({ 
                 embeds: [createErrorEmbed(new UserError("Invalid Slowmode", "The slowmode must be within the range 0s-6h"))],
                 ephemeral: true 
@@ -58,6 +59,8 @@ export default class AboutCommand implements Command {
 
         if(option.name === "reason") {
             return interaction.respond(reasonAutocompleteHandler(option, "Removal"));
+        } else if(option.name === "value") {
+            return interaction.respond(durationAutocompleteHandler(option, new Duration("6h")));
         }
     }
 
@@ -74,6 +77,7 @@ export default class AboutCommand implements Command {
                         description: 'The slowmode for the channel (pass a duration string)',
                         type: ApplicationCommandOptionType.String,
                         required: true,
+                        autocomplete: true,
                     },
                     {
                         name: 'channel',

@@ -15,6 +15,8 @@ import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
 import { createTimedInfraction } from "../../functions/createTimedInfraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
+import { durationAutocompleteHandler } from "../../handlers/Duration.js";
+import { Duration } from "@sapphire/time-utilities";
 
 export default class TimeoutCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
@@ -40,6 +42,8 @@ export default class TimeoutCommand implements Command {
             return interaction.respond(reasonAutocompleteHandler(option));
         } else if (option.name === "reference") {
             return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        } else if (option.name === "expiration") {
+            return interaction.respond(durationAutocompleteHandler(option, new Duration('27d23h59m59s')));
         }
     }
 
@@ -70,6 +74,8 @@ export default class TimeoutCommand implements Command {
                         description: 'How long the timeout should last, up to 28 days (pass in a duration string)',
                         type: ApplicationCommandOptionType.String,
                         required: true,
+                        autocomplete: true
+
                     },
                     {
                         name: 'dm',

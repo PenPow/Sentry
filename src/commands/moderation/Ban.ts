@@ -23,6 +23,7 @@ import { reasonAutocompleteHandler } from "../../handlers/Reason.js";
 import { referenceAutocompleteHandler } from "../../handlers/Reference.js";
 import { createTimedInfraction } from "../../functions/createTimedInfraction.js";
 import { PreconditionValidationError } from "../../lib/framework/structures/errors/PreconditionValidationError.js";
+import { durationAutocompleteHandler } from "../../handlers/Duration.js";
 
 export default class BanCommand implements Command {
     public shouldRun(interaction: CommandInteraction<CacheType>): PreconditionOption {
@@ -92,6 +93,8 @@ export default class BanCommand implements Command {
             return interaction.respond(reasonAutocompleteHandler(option));
         } else if (option.name === "reference") {
             return interaction.respond(await referenceAutocompleteHandler(interaction.guildId, option));
+        } else if (option.name === "expiration") {
+            return interaction.respond(durationAutocompleteHandler(option));
         }
     }
 
@@ -133,6 +136,7 @@ export default class BanCommand implements Command {
                         name: 'expiration',
                         description: 'Unban the user automatically after a certain about of time (pass in a duration string)',
                         type: ApplicationCommandOptionType.String,
+                        autocomplete: true,
                     }
                 ]
             }, 
