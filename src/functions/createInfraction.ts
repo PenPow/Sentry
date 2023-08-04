@@ -31,6 +31,18 @@ export async function createInfraction(interaction: ChatInputCommandInteraction<
             referenceId: reference
         }, { dm: ["Unban", "Untimeout", "VUnmute", "Undeafen"].includes(type) ? dm : false , dry: false });
 
+        if(type === "Undeafen") {
+            await prisma.infraction.updateMany({ 
+                data: { overturned: true }, 
+                where: { guildId: interaction.guildId, userId: user.id, action: { in: ["VMute", "Deafen"] } }
+            });
+        } else if(type === "VUnmute") {
+            await prisma.infraction.updateMany({ 
+                data: { overturned: true }, 
+                where: { guildId: interaction.guildId, userId: user.id, action: "VMute" }
+            });
+        }
+
         await interaction.editReply({ embeds: [embed ]});
     });
 }

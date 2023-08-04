@@ -180,13 +180,14 @@ describe("Infractions", () => {
 
 
     describe("Case Creation", () => {
-        const baseCaseData: Case = {
+        const baseCaseData: Case & { expiration: Date | null } = {
             duration: null,
             guildId: '893846199063445514',
             moderatorId: '207198455301537793',
             moderatorIconUrl: 'https://www.penpow.dev/img/me.webp',
             moderatorName: 'PenPow',
             reason: 'Unit Testing',
+            expiration: null,
             action: 'Ban', // replaced in fns later
             userName: 'Test Dummy',
             userId: '1053668982651109386'
@@ -233,10 +234,10 @@ describe("Infractions", () => {
         });
 
         test("Created Timed Warn Infraction", async () => {
-            const caseData: Case = {
+            const caseData: Case  = {
                 ...baseCaseData,
                 action: 'Warn',
-                duration: new Duration("27h59m59s").offset
+                duration: new Duration("27h59m59s").offset,
             };
 
             const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
@@ -244,7 +245,8 @@ describe("Infractions", () => {
             expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
-                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
+                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second),
+                expiration: new Date(Date.now() + new Duration("27h59m59s").offset),
             });
 
             expect(embed).toStrictEqual("infraction embed");
@@ -253,10 +255,10 @@ describe("Infractions", () => {
         });
 
         test("Creates Timeout Infraction", async () => {
-            const caseData: Case = {
+            const caseData: Case & { expiration: Date | null } = {
                 ...baseCaseData,
                 action: 'Timeout',
-                duration: new Duration("27h59m59s").offset
+                duration: new Duration("27h59m59s").offset,
             };
 
             const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
@@ -264,7 +266,8 @@ describe("Infractions", () => {
             expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
-                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
+                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second),
+                expiration: new Date(Date.now() + new Duration("27h59m59s").offset),
             });
 
             expect(embed).toStrictEqual("infraction embed");
@@ -304,7 +307,9 @@ describe("Infractions", () => {
             expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
-                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
+                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second),
+                expiration: new Date(Date.now() + new Duration("27h59m59s").offset),
+
             });
 
             expect(embed).toStrictEqual("infraction embed");
@@ -344,7 +349,8 @@ describe("Infractions", () => {
             expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1,
-                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second)
+                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second),
+                expiration: new Date(Date.now() + new Duration("27h59m59s").offset),
             });
 
             expect(embed).toStrictEqual("infraction embed");
@@ -403,6 +409,28 @@ describe("Infractions", () => {
             expect(infraction).toStrictEqual({
                 ...caseData,
                 caseId: 1
+            });
+
+            expect(embed).toStrictEqual("infraction embed");
+
+            expect(sendFn).toBeCalledTimes(1);
+            expect(banFn).toBeCalledTimes(1);
+        });
+
+        test("Creates Timed Ban Infraction", async () => {
+            const caseData: Case = {
+                ...baseCaseData,
+                action: 'Ban',
+                duration: new Duration("27h59m59s").offset
+            };
+
+            const [infraction, embed] = await createCase(guildStub, caseData, { dm: true, dry: false });
+
+            expect(infraction).toStrictEqual({
+                ...caseData,
+                caseId: 1,
+                duration: Math.ceil(new Duration("27h59m59s").offset / Time.Second),
+                expiration: new Date(Date.now() + new Duration("27h59m59s").offset),
             });
 
             expect(embed).toStrictEqual("infraction embed");

@@ -78,34 +78,16 @@ describe('Errors', () => {
         const interaction = { 
             replied: false,
             deferred: false,
-            reply: vi.fn(),
-            editReply: vi.fn(),
+            deferReply: vi.fn(() => Promise.resolve()),
             followUp: vi.fn(),
         } as unknown as CommandInteraction;
 
         const embed = {} as APIEmbed;
 
-        test("IF NOT Replied THEN Reply", async () => {
+        test("Defer + Reply", async () => {
             await sendErrorResponse(interaction, embed);
 
-            expect(interaction.reply).toBeCalledTimes(1);
-            expect(interaction.editReply).not.toBeCalled();
-            expect(interaction.followUp).not.toBeCalled();
-        });
-
-        test("IF Replied AND Deferred THEN Edit Reply", async () => {
-            await sendErrorResponse({ ...interaction, replied: true, deferred: true } as CommandInteraction, embed);
-
-            expect(interaction.reply).not.toBeCalled();
-            expect(interaction.editReply).toBeCalledTimes(1);
-            expect(interaction.followUp).not.toBeCalled();
-        });
-        
-        test("IF Replied AND NOT Deferred THEN Follow Up", async () => {
-            await sendErrorResponse({ ...interaction, replied: true } as CommandInteraction, embed);
-
-            expect(interaction.reply).not.toBeCalled();
-            expect(interaction.editReply).not.toBeCalled();
+            expect(interaction.deferReply).toBeCalledTimes(1);
             expect(interaction.followUp).toBeCalledTimes(1);
         });
     });

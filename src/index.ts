@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
 
 const client = new SentryClient({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildModeration]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildVoiceStates]
 });
 
 globalThis.client = client;

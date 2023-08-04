@@ -48,6 +48,8 @@ model Infraction {
   references       Infraction[] @relation("CaseReference")
   userName         String /// Username at time of infraction
   frozen           Boolean      @default(false)
+  expiration       DateTime?
+  overturned          Boolean      @default(false)
 
   @@unique([guildId, caseId])
 }

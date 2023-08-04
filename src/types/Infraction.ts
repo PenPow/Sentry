@@ -1,7 +1,7 @@
 import { type Infraction } from "@prisma/client";
 import { Snowflake } from "discord.js";
 
-export type Case = Omit<Infraction, "id" | "createdAt" | "caseId" | "modLogMessageId" | "frozen" | "referenceId"> 
+export type Case = Omit<Infraction, "id" | "createdAt" | "caseId" | "modLogMessageId" | "frozen" | "referenceId" | "expiration" | "overturned"> 
                    & { referenceId?: number | null; frozen?: boolean };
 
 export type CaseWithReference = Infraction & { caseReference: Infraction | null };
