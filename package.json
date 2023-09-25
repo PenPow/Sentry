@@ -61,7 +61,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.5",
     "@commitlint/config-conventional": "^17.6.5",
-    "@sentry/cli": "^2.19.0",
+    "@sentry/cli": "^2.21.1",
     "@types/async-lock": "^1.4.0",
     "@types/node": "20.x",
     "@typescript-eslint/eslint-plugin": "^6.2.0",
